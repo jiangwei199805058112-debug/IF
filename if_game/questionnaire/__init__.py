@@ -7,6 +7,7 @@ from if_game.questionnaire.loader import (
     load_questionnaire_config,
     validate_questionnaire_config,
 )
+from if_game.questionnaire.reporting import render_questionnaire_report, score_to_level
 from if_game.questionnaire.scoring import QuestionnaireScoringError, score_questionnaire
 
 __all__ = [
@@ -15,6 +16,8 @@ __all__ = [
     "QuestionnaireScoringError",
     "load_mvp_questionnaire",
     "load_questionnaire_config",
+    "render_questionnaire_report",
+    "score_to_level",
     "score_questionnaire",
     "validate_questionnaire_config",
 ]
