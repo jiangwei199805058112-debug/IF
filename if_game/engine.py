@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from .event_loader import load_day_flow, load_sample_characters, load_seed_events
+from .event_loader import load_day_flow, load_playtest_scenarios, load_sample_characters, load_seed_events
 from .models import CharacterProfile, MemoryEntry, OutcomeDelta, PerceivedRelationshipState, RelationshipState
 
 
@@ -304,6 +304,25 @@ def run_14_day_simulation(
         "final_stage": final_stage,
         "visible_summary": visible_summary,
         "memory_count": len(state.memory_entries),
+        "memory_summaries": [entry.summary for entry in state.memory_entries],
         "triggered_events": list(dict.fromkeys(state.triggered_events)),
+        "feedback_level": final_feedback.feedback_level,
+        "active_hooks": list(dict.fromkeys(state.active_hooks)),
         "transcript": state.transcript,
     }
+
+
+def run_playtest_scenario(scenario: dict[str, Any]) -> dict[str, Any]:
+    result = run_14_day_simulation(
+        str(scenario["entry_mode"]),
+        str(scenario["profile_pair_id"]),
+        scripted_choices=scenario.get("scripted_choices"),
+    )
+    result["scenario_id"] = str(scenario["id"])
+    result["scenario_title"] = str(scenario["title"])
+    return result
+
+
+def run_all_playtest_scenarios() -> list[dict[str, Any]]:
+    scenario_data = load_playtest_scenarios()
+    return [run_playtest_scenario(scenario) for scenario in scenario_data.get("scenarios", [])]

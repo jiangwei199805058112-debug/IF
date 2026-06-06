@@ -1,0 +1,139 @@
+{
+  "scenarios": [
+    {
+      "id": "scenario_repair",
+      "title": "有效修复路径",
+      "entry_mode": "ambiguous",
+      "profile_pair_id": "E",
+      "description": "验证真忙解释、普通同事饭局和当晚说清楚能形成有效修复。",
+      "scripted_choices": {
+        "MSG_001": {
+          "branch_id": "MSG_001_A",
+          "choice_tag": "accept"
+        },
+        "SOC_001": {
+          "branch_id": "SOC_001_A",
+          "choice_tag": "set_boundary"
+        },
+        "CONFLICT_001": {
+          "branch_id": "CONFLICT_001_A",
+          "choice_tag": "apologize_boundary"
+        }
+      },
+      "expected": {
+        "allowed_final_stages": ["升温", "确认关系"],
+        "min_memory_count": 1,
+        "required_events": ["MSG_001", "SOC_001", "CONFLICT_001"],
+        "forbidden_transcript_tokens": ["真实信任", "真实好感", "trust="]
+      }
+    },
+    {
+      "id": "scenario_cold",
+      "title": "解释敷衍与冷战路径",
+      "entry_mode": "ambiguous",
+      "profile_pair_id": "A",
+      "description": "验证解释敷衍、半真半假和冷处理能让关系进入冷淡或反复拉扯。",
+      "scripted_choices": {
+        "MSG_001": {
+          "branch_id": "MSG_001_B",
+          "choice_tag": "cool_down"
+        },
+        "SOC_001": {
+          "branch_id": "SOC_001_B",
+          "choice_tag": "cold"
+        },
+        "CONFLICT_001": {
+          "branch_id": "CONFLICT_001_C",
+          "choice_tag": "cold"
+        }
+      },
+      "expected": {
+        "allowed_final_stages": ["冷淡", "继续暧昧", "分分合合倾向"],
+        "min_memory_count": 2,
+        "required_events": ["MSG_001", "SOC_001", "CONFLICT_001"],
+        "forbidden_transcript_tokens": ["真实信任", "真实好感", "trust="]
+      }
+    },
+    {
+      "id": "scenario_crisis_lie",
+      "title": "重大谎言危机路径",
+      "entry_mode": "new_relationship",
+      "profile_pair_id": "D",
+      "description": "验证隐瞒异性社交、完全撒谎和情绪性拉黑会推高危机倾向。",
+      "scripted_choices": {
+        "MSG_001": {
+          "branch_id": "MSG_001_E",
+          "choice_tag": "push_hard"
+        },
+        "SOC_001": {
+          "branch_id": "SOC_001_F",
+          "choice_tag": "verify"
+        },
+        "CONFLICT_001": {
+          "branch_id": "CONFLICT_001_D",
+          "choice_tag": "reconnect_or_break"
+        }
+      },
+      "expected": {
+        "allowed_final_stages": ["分手危机", "分手", "分分合合倾向"],
+        "min_memory_count": 3,
+        "required_events": ["MSG_001", "SOC_001", "CONFLICT_001"],
+        "forbidden_transcript_tokens": ["真实信任", "真实好感", "trust="]
+      }
+    },
+    {
+      "id": "scenario_boundary",
+      "title": "边界协商路径",
+      "entry_mode": "new_relationship",
+      "profile_pair_id": "B",
+      "description": "验证半真半假的边界冲突在说清楚后不应直接走向分手。",
+      "scripted_choices": {
+        "MSG_001": {
+          "branch_id": "MSG_001_B",
+          "choice_tag": "ask_softly"
+        },
+        "SOC_001": {
+          "branch_id": "SOC_001_B",
+          "choice_tag": "set_boundary"
+        },
+        "CONFLICT_001": {
+          "branch_id": "CONFLICT_001_A",
+          "choice_tag": "apologize_boundary"
+        }
+      },
+      "expected": {
+        "allowed_final_stages": ["继续暧昧", "冷淡", "升温"],
+        "min_memory_count": 2,
+        "required_events": ["MSG_001", "SOC_001", "CONFLICT_001"],
+        "forbidden_transcript_tokens": ["真实信任", "真实好感", "trust="]
+      }
+    },
+    {
+      "id": "scenario_push_pull",
+      "title": "强吸引低稳定拉扯路径",
+      "entry_mode": "new_relationship",
+      "profile_pair_id": "D",
+      "description": "验证强吸引但低信任的关系在隐瞒、前任和拉黑后进入分分合合或危机。",
+      "scripted_choices": {
+        "MSG_001": {
+          "branch_id": "MSG_001_E",
+          "choice_tag": "push_hard"
+        },
+        "SOC_001": {
+          "branch_id": "SOC_001_C",
+          "choice_tag": "verify"
+        },
+        "CONFLICT_001": {
+          "branch_id": "CONFLICT_001_D",
+          "choice_tag": "reconnect_or_break"
+        }
+      },
+      "expected": {
+        "allowed_final_stages": ["分分合合倾向", "分手危机"],
+        "min_memory_count": 3,
+        "required_events": ["MSG_001", "SOC_001", "CONFLICT_001"],
+        "forbidden_transcript_tokens": ["真实信任", "真实好感", "trust="]
+      }
+    }
+  ]
+}

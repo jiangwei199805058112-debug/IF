@@ -30,6 +30,10 @@ def main() -> None:
 
     assert result["final_stage"]
     assert result["transcript"]
+    assert "memory_summaries" in result
+    assert "feedback_level" in result
+    assert isinstance(result["memory_summaries"], list)
+    assert result["feedback_level"]
     triggered = set(result["triggered_events"])
     assert {"MSG_001", "SOC_001", "CONFLICT_001"}.issubset(triggered)
     assert result["memory_count"] >= 1

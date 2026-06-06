@@ -1,8 +1,13 @@
 from __future__ import annotations
 
-from .engine import run_14_day_simulation
+from .engine import run_14_day_simulation, run_all_playtest_scenarios
 from .event_loader import load_sample_characters
 
+
+MODE_OPTIONS = [
+    ("interactive", "互动运行 14 天"),
+    ("scenarios", "运行内置场景测试摘要"),
+]
 
 ENTRY_OPTIONS = [
     ("chatting", "正在聊天"),
@@ -28,9 +33,21 @@ def _choose(prompt: str, options: list[tuple[str, str]], default_index: int = 0)
 
 
 def main() -> None:
-    print("IF v0.1.4 控制台原型")
-    print("这是 14 天关系规则测试原型，不是完整游戏。")
+    print("IF v0.1.5 控制台测试原型")
+    print("这是 14 天关系规则测试原型，不是完整游戏，真实数值不会显示。")
     print()
+
+    mode = _choose("选择运行模式：", MODE_OPTIONS, default_index=0)
+    if mode == "scenarios":
+        print()
+        print("----- 内置场景摘要 -----")
+        for result in run_all_playtest_scenarios():
+            print(
+                f"{result['scenario_id']}：{result['final_stage']}；"
+                f"记忆 {result['memory_count']} 条；反馈 {result['feedback_level']}"
+            )
+        print("----- 结束 -----")
+        return
 
     entry_mode = _choose("选择开局模式：", ENTRY_OPTIONS, default_index=1)
 

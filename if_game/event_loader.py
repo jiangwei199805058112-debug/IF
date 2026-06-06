@@ -24,3 +24,7 @@ def load_seed_events() -> dict[str, Any]:
 
 def load_day_flow() -> list[dict[str, Any]]:
     return _load_json("day_flow.json")
+
+
+def load_playtest_scenarios() -> dict[str, Any]:
+    return _load_json("playtest_scenarios.json")
