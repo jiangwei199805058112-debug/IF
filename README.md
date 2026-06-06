@@ -1,1 +1,18 @@
 # IF
+
+IF 是一个现实向亲密关系模拟游戏，重点模拟已经认识、正在聊天、暧昧、刚恋爱或分手复联后的关系变化。
+
+当前阶段是规则母版与纸面原型阶段。现阶段只建立设计文档，不写正式游戏代码、不做 UI、不接入 AI API。
+
+## 文档阅读顺序
+
+1. `docs/canon/00_if_core_rulebook.md`
+2. `docs/design/01_character_fields.md`
+3. `docs/design/02_personality_questionnaire.md`
+4. `docs/design/03_relationship_values.md`
+5. `docs/design/04_event_card_template.md`
+6. `docs/design/05_seed_events.md`
+
+## v0.1 目标
+
+建立一个 14 天暧昧/刚恋爱高密度测试版的规则基础，用少量种子事件验证真实值与感知值偏差、撒谎与破绽、压力叠加、未解决冲突和动态关系阶段。
