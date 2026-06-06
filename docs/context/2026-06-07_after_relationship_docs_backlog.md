@@ -1,12 +1,12 @@
 # 2026-06-07 IF 关系系统文档后续任务清单
 
-本文档用于在 Codex 额度暂时不可用时，整理 IF 当前已经完成的设计文档、后续代码任务、非代码任务、验收标准和交接提示。它不是新系统设计，而是后续执行索引。
+本文档用于整理 IF 当前已经完成的关系系统文档、后续代码任务、验收重点和交接提示。它不是新系统设计，而是后续执行索引。
 
 ---
 
 ## 1. 当前状态
 
-当前仓库已经完成并推送以下关系系统设计文档：
+当前仓库已经完成并推送以下关系系统设计与交接文档：
 
 ```text
 docs/design/25_attribution_memory_belief_system.md
@@ -19,15 +19,24 @@ docs/design/31_system_integration_consistency_rules.md
 docs/design/32_approach_avoidance_turbulence_system.md
 docs/design/33_communal_exchange_equity_system.md
 docs/design/34_relationship_state_aggregator_implementation_plan.md
+docs/design/35_relationship_event_template_library.md
+docs/design/36_questionnaire_expansion_candidate_pool.md
+docs/design/37_relationship_report_tag_dictionary.md
+docs/design/38_relationship_system_logic_audit_and_optimization_notes.md
+docs/design/39_questionnaire_dimension_alias_mapping.md
+docs/design/40_relationship_enum_and_field_registry.md
+docs/design/41_relationship_memory_decay_and_pattern_rules.md
+docs/context/codex_task_prompts.md
 ```
 
-README 已更新文档阅读顺序和 v0.1.25-v0.1.32 说明。
+README 已更新文档阅读顺序和 `v0.1.25-v0.1.41` 说明。
 
 当前原则：
 
 ```text
-代码交给 Codex 恢复额度后做；
-当前阶段优先完成设计整理、任务拆分、验收标准、测试用例草案和交接文档。
+代码交给 Codex 恢复额度后做。
+当前文档层已经完成一轮闭环。
+后续代码任务必须从 v0.1.42 开始，避免与 v0.1.38-v0.1.41 文档任务冲突。
 ```
 
 ---
@@ -43,10 +52,17 @@ README 已更新文档阅读顺序和 v0.1.25-v0.1.32 说明。
 28：前期调查如何测沟通和表露
 29：冲突中如何表达和修复
 30：为什么满意、为什么依赖、为什么离开或留下
-31：以上系统如何避免冲突和重复扣分
+31：25-30 的第一轮一致性规则
 32：关系是否有快乐、安全、新鲜感，以及如何度过动荡期
 33：关系是交换还是共有，付出和结果是否被感到公平
 34：将 25-33 收束成 relationship_state_aggregator 的实施方案
+35：关系事件模板库
+36：问卷扩展候选题池
+37：关系报告标签词典
+38：25-37 的第二轮逻辑审查与优化清单
+39：问卷候选维度到 128 维正式 ID 的别名映射
+40：关系枚举、字段和标签注册表
+41：重复事件、旧伤记忆、时间衰减和模式阈值规则
 ```
 
 核心代码实现方向：
@@ -56,6 +72,8 @@ relationship_interpretation.py
     ↓
 relationship_state_aggregator.py
     ↓
+relationship memory / pattern update
+    ↓
 事件报告 / 关系状态变化 / 后续问卷扩展
 ```
 
@@ -63,40 +81,51 @@ relationship_state_aggregator.py
 
 ## 3. 后续代码任务顺序
 
-### 3.1 v0.1.33：relationship_state_aggregator.py 原型
+旧计划中的 `v0.1.33-v0.1.38` 代码任务编号已经失效。当前应使用以下顺延版本：
+
+```text
+v0.1.42 relationship_state_aggregator.py 原型
+v0.1.43 aggregator 关键裁决测试补全
+v0.1.44 relationship_interpretation.py 接入 aggregator
+v0.1.45 冲突沟通事件接入 aggregator
+v0.1.46 社会交换/公平轻量接入 aggregator
+v0.1.47 问卷补 4 个沟通表露题
+```
+
+---
+
+## 4. v0.1.42：relationship_state_aggregator.py 原型
 
 目标文件：
 
 ```text
 if_game/relationship_state_aggregator.py
 tests/relationship_state_aggregator_test.py
+README.md
 ```
 
 最低目标：
 
-- 新增 `RelationshipStateDelta`；
-- 新增 `aggregate_relationship_event()`；
-- 支持最小输入字段：
-  - `truth_harm_level`
-  - `deception_level`
-  - `evidence_chain_strength`
-  - `interpretation_accuracy`
-  - `perceived_responsiveness`
-  - `conflict_escalation_risk`
-  - `validation_skill`
-  - `stonewalling_level`
-  - `repair_attempt_quality`
-  - `relationship_rewards_delta`
-  - `relationship_costs_delta`
-- 输出：
+- 新增 `RelationshipStateDelta`。
+- 新增 `aggregate_relationship_event()`。
+- 支持 dict 输入，避免过度工程化。
+- 输出保留 `source_id`、`target_id`，避免玩家/NPC 状态被误写成完全对称。
+- 输出包含：
   - `trust_delta`
   - `satisfaction_delta`
   - `intimacy_delta`
   - `stability_delta`
   - `repair_chance_delta`
   - `old_wound_memory_delta`
+  - `safety_delta`
+  - `excitement_delta`
+  - `fairness_delta`
+  - `dependence_delta`
   - `report_tags`
+  - `memory_notes`
   - `debug_reasons`
+- `safety_delta`、`excitement_delta`、`fairness_delta`、`dependence_delta` 第一版可以默认 0，但字段必须存在。
+- 支持基础输入：事实伤害、欺骗、证据强度、解释准确度、回应性、冲突升级、感受确认、石墙、修复质量、奖赏变化、代价变化、模式键、重复次数、修复状态。
 
 验收重点：
 
@@ -104,16 +133,19 @@ tests/relationship_state_aggregator_test.py
 同一事件不能被多个系统重复扣 trust。
 普通事件不能一次性摧毁关系。
 输出要可测试、可读、可解释。
+输出必须有方向性和预留字段。
 ```
 
 ---
 
-### 3.2 v0.1.34：aggregator 关键裁决测试
+## 5. v0.1.43：aggregator 关键裁决测试
 
-新增或补充：
+目标文件：
 
 ```text
 tests/relationship_state_aggregator_test.py
+if_game/relationship_state_aggregator.py
+README.md
 ```
 
 必须覆盖：
@@ -129,23 +161,23 @@ tests/relationship_state_aggregator_test.py
 9. 公平不是五五分；
 10. 同一事件不能重复扣 `trust_delta`。
 
+测试应以方向断言为主，不要过度依赖具体数值。
+
 ---
 
-### 3.3 v0.1.35：relationship_interpretation.py 接入 aggregator
+## 6. v0.1.44：relationship_interpretation.py 接入 aggregator
 
 目标：
 
-- 保持 `relationship_interpretation.py` 现有测试通过；
-- 新增一个转换函数，将解释结果转为 aggregator 输入；
-- 不重写整个解释系统；
-- 不接 AI API；
+- 保持 `relationship_interpretation.py` 现有测试通过。
+- 新增轻量转换函数，将解释结果转为 aggregator 输入。
+- 不重写整个解释系统。
 - 不接完整主流程。
 
 建议接口：
 
-```python
-def interpretation_to_aggregator_input(result: dict) -> dict:
-    ...
+```text
+interpretation_to_aggregator_input(result: dict) -> dict
 ```
 
 验收重点：
@@ -154,41 +186,62 @@ def interpretation_to_aggregator_input(result: dict) -> dict:
 现有 relationship_interpretation_test.py 不破。
 aggregator 新测试通过。
 解释层与聚合层职责分离。
+准确警觉、误会/焦虑、真实欺骗三种路径可被聚合器正确处理。
 ```
 
 ---
 
-### 3.4 v0.1.36：冲突沟通事件轻量接入
+## 7. v0.1.45：冲突沟通事件轻量接入
 
 目标：
 
-- 增加 2-3 个冲突沟通事件样例；
+- 增加 2-3 个冲突沟通事件样例。
 - 能体现：
   - 暂停不是石墙；
   - 精确表达可修复；
-  - 蔑视/人格攻击高伤害；
-- 接入 aggregator 结算；
+  - 蔑视/人格攻击高伤害。
+- 接入 aggregator 结算。
 - 暂不做复杂剧情树。
+
+建议事件：
+
+```text
+E-CON-01：对方抱怨你迟到
+E-CON-02：玩家请求暂停争吵
+E-CON-03：一方用嘲讽回应脆弱表达
+```
 
 ---
 
-### 3.5 v0.1.37：社会交换/公平轻量接入
+## 8. v0.1.46：社会交换/公平轻量接入
 
 目标：
 
-- 增加社会交换和公平的轻量计算；
+- 增加社会交换和公平的轻量计算。
 - 区分：
   - 满意度；
   - 稳定性；
   - 依赖度；
   - 公平感；
+  - 安全感；
+  - 新鲜感/刺激感。
 - 不实现完整 CL/CLalt 大系统，只做原型。
+
+必须覆盖：
+
+```text
+低痛苦不等于高快乐。
+高快乐不等于安全。
+安全但沉闷可生成 safe_but_bored_pattern。
+长期获益不足会降低满意度。
+公平不是五五分。
+```
 
 ---
 
-### 3.6 v0.1.38：问卷补 4 个沟通表露题
+## 9. v0.1.47：问卷补 4 个沟通表露题
 
-优先从 `28_questionnaire_communication_disclosure_module.md` 中选择：
+优先从 `36_questionnaire_expansion_candidate_pool.md` 中选择：
 
 ```text
 Q-COM-01：自我表露意愿
@@ -199,129 +252,55 @@ Q-COM-10：自己表露 vs 希望对方表露
 
 要求：
 
-- 只轻量加入；
-- 不一次性扩展到 40-60 题；
-- 更新 loader/scoring/reporting/runner 测试；
+- 只轻量加入。
+- 不一次性扩展到 40-60 题。
+- `dimensions` 和 `dimension_effects` 必须使用 16 号 128 维正式 ID。
+- 不要直接使用 36 号候选别名作为问卷维度。
+- 必须参考 `39_questionnaire_dimension_alias_mapping.md`。
+- 更新 loader/scoring/reporting/runner 测试。
 - 保持当前 MVP 可运行。
 
 ---
 
-## 4. 非代码任务清单
+## 10. 已完成的非代码任务
 
-当前不用 Codex 也能继续做的事：
-
-### 4.1 事件模板库整理
-
-建议新增：
+以下非代码任务已经完成，不应再作为待办重复提出：
 
 ```text
 docs/design/35_relationship_event_template_library.md
-```
-
-内容按系统归类：
-
-- 认知误读事件；
-- 表露与回应事件；
-- 秘密与隐私事件；
-- 冲突修复事件；
-- 社会交换事件；
-- 沉闷与新鲜感事件；
-- 公平与家务照料事件。
-
-### 4.2 问卷补题候选池
-
-建议新增：
-
-```text
 docs/design/36_questionnaire_expansion_candidate_pool.md
-```
-
-内容：
-
-- 沟通表露 10 题；
-- 冲突修复 10 题；
-- 社会交换/替代选择 10 题；
-- 新鲜感/沉闷 10 题；
-- 公平/共有关系 10 题。
-
-这只是候选池，不直接修改 `questionnaire_mvp.json`。
-
-### 4.3 报告标签词典
-
-建议新增：
-
-```text
 docs/design/37_relationship_report_tag_dictionary.md
-```
-
-内容：
-
-- 标签 ID；
-- 中文标签；
-- 正面写法；
-- 风险写法；
-- 禁止写法；
-- 来源系统；
-- 触发条件草案。
-
-### 4.4 Codex 任务提示词库
-
-建议新增：
-
-```text
+docs/design/38_relationship_system_logic_audit_and_optimization_notes.md
+docs/design/39_questionnaire_dimension_alias_mapping.md
+docs/design/40_relationship_enum_and_field_registry.md
+docs/design/41_relationship_memory_decay_and_pattern_rules.md
 docs/context/codex_task_prompts.md
+README 索引与版本说明更新
 ```
-
-内容：
-
-- v0.1.33 聚合器原型任务提示；
-- v0.1.34 测试任务提示；
-- v0.1.35 接入任务提示；
-- v0.1.38 问卷补题任务提示。
 
 ---
 
-## 5. 当前优先级
-
-如果继续做非代码文档，建议顺序：
-
-```text
-1. docs/design/35_relationship_event_template_library.md
-2. docs/design/37_relationship_report_tag_dictionary.md
-3. docs/context/codex_task_prompts.md
-4. docs/design/36_questionnaire_expansion_candidate_pool.md
-```
-
-理由：
-
-- 事件模板库能直接服务代码实现和剧情设计；
-- 报告标签词典能避免输出伤人、诊断化或道德审判；
-- Codex 提示词库能让后续代码任务直接开始；
-- 问卷候选池可以晚一点，因为当前 25 题 MVP 已经可运行。
-
----
-
-## 6. 后续 Codex 执行总规则
+## 11. 后续 Codex 执行总规则
 
 每次代码任务都必须：
 
 ```text
-1. 先 git pull --rebase origin main
-2. 不 force push
-3. 不大规模重构
-4. 不接 AI API
-5. 不做 UI
-6. 不破坏当前 14 天控制台原型
-7. 新增代码必须有测试
-8. 文档-only 任务不要求跑 Python 测试
-9. 代码任务至少跑相关测试和 git diff --check
-10. 完成后提交并推送
+1. 先同步远程 main。
+2. 不使用 force push。
+3. 不大规模重构。
+4. 不接 AI API。
+5. 不做 UI。
+6. 不破坏当前 14 天控制台原型。
+7. 新增代码必须有测试。
+8. 文档-only 任务不要求跑 Python 测试。
+9. 代码任务至少跑相关测试和文档格式检查。
+10. 完成后提交并推送。
 ```
 
 ---
 
-## 7. 一句话总结
+## 12. 一句话总结
 
 ```text
-当前 IF 已经完成关系系统理论层的主体搭建；下一阶段重点不是继续无限加理论，而是把这些文档整理成事件模板、报告标签、Codex 工单和 relationship_state_aggregator 的可测试代码实现。
+当前 IF 已经完成关系系统理论层和代码前置文档层的主体搭建；下一阶段重点是从 v0.1.42 开始，把 relationship_state_aggregator 做成可测试代码原型。
 ```
