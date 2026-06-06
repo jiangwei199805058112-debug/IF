@@ -15,7 +15,7 @@ def main() -> None:
     questionnaire = load_mvp_questionnaire()
     questions = questionnaire["questions"]
 
-    assert len(questions) >= 8
+    assert len(questions) == 25
 
     question_ids = [question["id"] for question in questions]
     assert len(question_ids) == len(set(question_ids))

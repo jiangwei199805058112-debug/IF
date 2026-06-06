@@ -20,13 +20,28 @@ from if_game.questionnaire.reporting import render_questionnaire_report
 
 RAW_ANSWERS = {
     "Q001": "3",
+    "Q002": "4",
+    "Q003": "3",
     "Q004": "2",
+    "Q005": "5",
+    "Q007": "5",
+    "Q008": "1,3,4",
+    "Q009": "5",
+    "Q010": "3,1",
+    "Q012": "25",
+    "Q013": "1,2,4",
+    "Q014": "1,2,5",
+    "Q015": "1,5,2",
+    "Q016": "3,4",
     "Q017": "3,5",
     "Q018": "75,65",
     "Q019": "85",
     "Q020": "30",
     "Q021": "3,1",
+    "Q022": "85",
     "Q023": "2",
+    "Q024": "2",
+    "Q025": "2,1,4",
     "Q026": "80",
     "Q030": "1,3,4",
 }
@@ -49,6 +64,8 @@ def _assert_invalid(question: dict, raw_input: str) -> None:
 
 def main() -> None:
     config = load_mvp_questionnaire()
+    assert len(config["questions"]) == 25
+    assert set(RAW_ANSWERS) == {question["id"] for question in config["questions"]}
 
     forced_single = build_answer_from_input(_question_by_id(config, "Q001"), "1")
     assert forced_single["primary_choice"] == "plain_chat"

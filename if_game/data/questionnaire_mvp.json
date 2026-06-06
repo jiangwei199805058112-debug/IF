@@ -1,14 +1,14 @@
 {
   "questionnaire_meta": {
     "id": "if_questionnaire_mvp",
-    "version": "0.1",
-    "title": "IF 问卷 MVP 配置",
+    "version": "0.2",
+    "title": "IF 问卷 MVP 25题快速版配置",
     "source_docs": [
       "docs/design/18_super_realistic_question_bank.md",
       "docs/design/24_questionnaire_json_schema.md"
     ],
-    "default_mode": "mvp",
-    "supported_modes": ["mvp"],
+    "default_mode": "quick",
+    "supported_modes": ["quick"],
     "score_range": [0, 100],
     "default_dimension_score": 50
   },
@@ -17,25 +17,56 @@
       "id": "relationship_context",
       "title": "关系上下文",
       "order": 1,
-      "description": "记录关系阶段和当前联系频率。",
-      "modes": ["mvp"],
-      "target_question_ids": ["Q001", "Q004"],
+      "description": "记录关系阶段、认识背景、联系频率、现实距离和公开程度。",
+      "modes": ["quick"],
+      "target_question_ids": ["Q001", "Q002", "Q003", "Q004", "Q005", "Q007", "Q008"],
       "report_section_id": "relationship_context",
       "primary_dimensions": [
         "attachment_commitment_pace",
         "values_belonging_need",
+        "social_circle_overlap_need",
         "digital_response_norm",
-        "attachment_closeness_need",
-        "social_dependency"
+        "stability_resource_availability",
+        "digital_social_media_display"
+      ]
+    },
+    {
+      "id": "relationship_history",
+      "title": "恋爱经历与信任底线",
+      "order": 2,
+      "description": "覆盖过往关系经验、旧伤记忆、信任修复、边界底线和复合态度。",
+      "modes": ["quick"],
+      "target_question_ids": ["Q009", "Q010", "Q012", "Q013", "Q014", "Q015", "Q016"],
+      "report_section_id": "relationship_history",
+      "primary_dimensions": [
+        "trust_old_wound_memory",
+        "trust_explanation_acceptance",
+        "trust_loyalty_sensitivity",
+        "boundary_respect",
+        "boundary_control_need",
+        "moral_line_clarity",
+        "attachment_repair_receptivity"
       ]
     },
     {
       "id": "intimacy_attachment",
       "title": "依恋与亲密",
-      "order": 2,
-      "description": "覆盖被弃焦虑、回避亲密、亲密需求、独立需求、脆弱暴露、依赖舒适和冲突修复。",
-      "modes": ["mvp"],
-      "target_question_ids": ["Q017", "Q018", "Q019", "Q020", "Q021", "Q023", "Q026", "Q030"],
+      "order": 3,
+      "description": "覆盖被弃焦虑、回避亲密、亲密需求、独立需求、脆弱暴露、依赖舒适、边界和冲突修复。",
+      "modes": ["quick"],
+      "target_question_ids": [
+        "Q017",
+        "Q018",
+        "Q019",
+        "Q020",
+        "Q021",
+        "Q022",
+        "Q023",
+        "Q024",
+        "Q025",
+        "Q026",
+        "Q030"
+      ],
       "report_section_id": "intimacy_attachment",
       "primary_dimensions": [
         "attachment_abandonment_anxiety",
@@ -59,7 +90,7 @@
       "selection_mode": "forced_single",
       "required": true,
       "allow_skip": false,
-      "modes": ["mvp"],
+      "modes": ["quick"],
       "dimensions": ["attachment_commitment_pace", "values_belonging_need"],
       "options": [
         {"id": "plain_chat", "value": "A", "label": "刚认识，还在普通聊天。"},
@@ -83,6 +114,78 @@
       "report_tags": ["relationship_entry_context"]
     },
     {
+      "id": "Q002",
+      "module": "relationship_context",
+      "module_id": "relationship_context",
+      "title": "认识方式",
+      "prompt": "你们最初是怎么认识的？",
+      "question_type": "forced_single",
+      "selection_mode": "forced_single",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "social_circle_overlap_need",
+        "digital_alt_account_tendency",
+        "social_reputation_sensitivity"
+      ],
+      "options": [
+        {"id": "school_course", "value": "A", "label": "学校或课程。"},
+        {"id": "work_project", "value": "B", "label": "工作、兼职或项目。"},
+        {"id": "mutual_friends", "value": "C", "label": "朋友介绍或共同圈子。"},
+        {"id": "online_platform", "value": "D", "label": "社交软件或网络平台。"},
+        {"id": "offline_encounter", "value": "E", "label": "线下偶遇、吃饭、逛街或搭讪。"},
+        {"id": "old_relationship_reconnect", "value": "F", "label": "前任复联或旧关系重新联系。"}
+      ],
+      "scoring": {
+        "base_weight": 0.75,
+        "evidence_quality": "context",
+        "dimension_effects": {
+          "school_course": {"social_circle_overlap_need": 4, "social_reputation_sensitivity": 2},
+          "work_project": {"social_circle_overlap_need": 3, "social_reputation_sensitivity": 3},
+          "mutual_friends": {"social_circle_overlap_need": 7, "social_reputation_sensitivity": 5},
+          "online_platform": {"digital_alt_account_tendency": 4, "social_circle_overlap_need": -4},
+          "offline_encounter": {"social_circle_overlap_need": -1, "social_reputation_sensitivity": 1},
+          "old_relationship_reconnect": {"social_circle_overlap_need": 2, "social_reputation_sensitivity": 3}
+        }
+      },
+      "confidence": {"enabled": true, "default": 80, "affects_weight": true},
+      "report_tags": ["relationship_origin"]
+    },
+    {
+      "id": "Q003",
+      "module": "relationship_context",
+      "module_id": "relationship_context",
+      "title": "认识时长",
+      "prompt": "你们认识了多久？",
+      "question_type": "forced_single",
+      "selection_mode": "forced_single",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": ["trust_baseline", "attachment_repair_receptivity"],
+      "options": [
+        {"id": "under_one_week", "value": "A", "label": "少于一周。"},
+        {"id": "one_week_to_month", "value": "B", "label": "一周到一个月。"},
+        {"id": "one_to_three_months", "value": "C", "label": "一到三个月。"},
+        {"id": "three_months_to_year", "value": "D", "label": "三个月到一年。"},
+        {"id": "over_one_year", "value": "E", "label": "一年以上。"}
+      ],
+      "scoring": {
+        "base_weight": 0.65,
+        "evidence_quality": "context",
+        "dimension_effects": {
+          "under_one_week": {"trust_baseline": -4, "attachment_repair_receptivity": -1},
+          "one_week_to_month": {"trust_baseline": -2, "attachment_repair_receptivity": 0},
+          "one_to_three_months": {"trust_baseline": 1, "attachment_repair_receptivity": 1},
+          "three_months_to_year": {"trust_baseline": 4, "attachment_repair_receptivity": 2},
+          "over_one_year": {"trust_baseline": 6, "attachment_repair_receptivity": 3}
+        }
+      },
+      "confidence": {"enabled": true, "default": 80, "affects_weight": true},
+      "report_tags": ["relationship_duration"]
+    },
+    {
       "id": "Q004",
       "module": "relationship_context",
       "module_id": "relationship_context",
@@ -92,7 +195,7 @@
       "selection_mode": "forced_single",
       "required": true,
       "allow_skip": false,
-      "modes": ["mvp"],
+      "modes": ["quick"],
       "dimensions": ["digital_response_norm", "attachment_closeness_need", "social_dependency"],
       "options": [
         {"id": "all_day_messages", "value": "A", "label": "几乎全天都有消息。"},
@@ -116,6 +219,389 @@
       "report_tags": ["current_contact_frequency"]
     },
     {
+      "id": "Q005",
+      "module": "relationship_context",
+      "module_id": "relationship_context",
+      "title": "现实距离",
+      "prompt": "你们现实中的距离更接近哪种？",
+      "question_type": "forced_single",
+      "selection_mode": "forced_single",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": ["stability_resource_availability", "stability_adaptability", "digital_response_norm"],
+      "options": [
+        {"id": "same_city_easy", "value": "A", "label": "同城，见面比较方便。"},
+        {"id": "same_city_busy", "value": "B", "label": "同城，但学习/工作节奏很难约。"},
+        {"id": "different_city_some_meet", "value": "C", "label": "不同城市，但可以偶尔见面。"},
+        {"id": "long_distance_high_cost", "value": "D", "label": "异地，见面成本很高。"},
+        {"id": "mostly_online", "value": "E", "label": "主要是网络联系。"}
+      ],
+      "scoring": {
+        "base_weight": 0.85,
+        "evidence_quality": "context",
+        "dimension_effects": {
+          "same_city_easy": {"stability_resource_availability": 7, "stability_adaptability": 1, "digital_response_norm": -1},
+          "same_city_busy": {"stability_resource_availability": 1, "stability_adaptability": 3, "digital_response_norm": 2},
+          "different_city_some_meet": {"stability_resource_availability": -3, "stability_adaptability": 5, "digital_response_norm": 3},
+          "long_distance_high_cost": {"stability_resource_availability": -7, "stability_adaptability": 6, "digital_response_norm": 5},
+          "mostly_online": {"stability_resource_availability": -6, "stability_adaptability": 4, "digital_response_norm": 7}
+        }
+      },
+      "confidence": {"enabled": true, "default": 80, "affects_weight": true},
+      "report_tags": ["real_world_distance"]
+    },
+    {
+      "id": "Q007",
+      "module": "relationship_context",
+      "module_id": "relationship_context",
+      "title": "公开程度",
+      "prompt": "如果你们进入或已经处在恋爱关系中，你更倾向于多公开？",
+      "question_type": "forced_single",
+      "selection_mode": "forced_single",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "digital_social_media_display",
+        "social_reputation_sensitivity",
+        "boundary_double_standard"
+      ],
+      "options": [
+        {"id": "naturally_public", "value": "A", "label": "希望自然公开，朋友知道也没关系。"},
+        {"id": "important_friends_only", "value": "B", "label": "希望重要朋友知道，但不必发朋友圈。"},
+        {"id": "low_key_until_stable", "value": "C", "label": "先低调，等稳定再公开。"},
+        {"id": "prefer_private", "value": "D", "label": "不太想公开，关系是两个人的事。"},
+        {"id": "partner_public_self_private", "value": "E", "label": "希望对方公开，但自己不一定想公开。"}
+      ],
+      "scoring": {
+        "base_weight": 0.85,
+        "evidence_quality": "medium",
+        "dimension_effects": {
+          "naturally_public": {"digital_social_media_display": 5, "social_reputation_sensitivity": 2, "boundary_double_standard": -2},
+          "important_friends_only": {"digital_social_media_display": 2, "social_reputation_sensitivity": 1, "boundary_double_standard": -1},
+          "low_key_until_stable": {"digital_social_media_display": -2, "social_reputation_sensitivity": 3, "boundary_double_standard": 0},
+          "prefer_private": {"digital_social_media_display": -6, "social_reputation_sensitivity": 4, "boundary_double_standard": 1},
+          "partner_public_self_private": {"digital_social_media_display": 3, "social_reputation_sensitivity": 5, "boundary_double_standard": 7}
+        }
+      },
+      "confidence": {"enabled": true, "default": 75, "affects_weight": true},
+      "report_tags": ["public_visibility_preference"]
+    },
+    {
+      "id": "Q008",
+      "module": "relationship_context",
+      "module_id": "relationship_context",
+      "title": "当前关系目标",
+      "prompt": "你现在最希望这段关系往哪些方向发展？可以多选，并把最主要的一项放在最前。",
+      "question_type": "multi_with_primary",
+      "selection_mode": "multi_with_primary",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "attachment_commitment_pace",
+        "values_security_need",
+        "values_freedom_need",
+        "attachment_repair_receptivity"
+      ],
+      "options": [
+        {"id": "stable_relationship", "value": "A", "label": "稳定恋爱。"},
+        {"id": "slow_observe", "value": "B", "label": "慢慢了解，不急着定性。"},
+        {"id": "more_companionship", "value": "C", "label": "更多陪伴和联系。"},
+        {"id": "clear_future_plan", "value": "D", "label": "更明确的未来规划。"},
+        {"id": "keep_light", "value": "E", "label": "保持轻松，不要太有压力。"},
+        {"id": "repair_past", "value": "F", "label": "重新修复过去的问题。"},
+        {"id": "test_feelings", "value": "G", "label": "只是看看还有没有感觉。"}
+      ],
+      "scoring": {
+        "base_weight": 0.85,
+        "evidence_quality": "context",
+        "dimension_effects": {
+          "stable_relationship": {"attachment_commitment_pace": 6, "values_security_need": 5},
+          "slow_observe": {"attachment_commitment_pace": -3, "values_freedom_need": 3},
+          "more_companionship": {"attachment_closeness_need": 6, "values_security_need": 2},
+          "clear_future_plan": {"attachment_commitment_pace": 5, "values_security_need": 6},
+          "keep_light": {"attachment_commitment_pace": -5, "values_freedom_need": 6},
+          "repair_past": {"attachment_repair_receptivity": 7, "values_security_need": 2},
+          "test_feelings": {"attachment_commitment_pace": -4, "values_freedom_need": 4}
+        }
+      },
+      "confidence": {"enabled": true, "default": 75, "affects_weight": true},
+      "report_tags": ["relationship_goal"]
+    },
+    {
+      "id": "Q009",
+      "module": "relationship_history",
+      "module_id": "relationship_history",
+      "title": "恋爱经验",
+      "prompt": "你过去的恋爱经验更接近哪种？",
+      "question_type": "forced_single",
+      "selection_mode": "forced_single",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": ["family_relationship_script", "risk_repeat_pattern", "attachment_repair_receptivity"],
+      "options": [
+        {"id": "almost_none", "value": "A", "label": "几乎没有正式恋爱经验。"},
+        {"id": "short_or_ambiguous", "value": "B", "label": "有过短期恋爱或暧昧。"},
+        {"id": "one_serious", "value": "C", "label": "有过一段较认真关系。"},
+        {"id": "several_relationships", "value": "D", "label": "有过多段关系。"},
+        {"id": "complex_on_off", "value": "E", "label": "有过分分合合或复杂关系。"}
+      ],
+      "scoring": {
+        "base_weight": 0.7,
+        "evidence_quality": "context",
+        "dimension_effects": {
+          "almost_none": {"family_relationship_script": -3, "risk_repeat_pattern": -2, "attachment_repair_receptivity": 0},
+          "short_or_ambiguous": {"family_relationship_script": 1, "risk_repeat_pattern": 1, "attachment_repair_receptivity": 0},
+          "one_serious": {"family_relationship_script": 3, "risk_repeat_pattern": 0, "attachment_repair_receptivity": 1},
+          "several_relationships": {"family_relationship_script": 5, "risk_repeat_pattern": 2, "attachment_repair_receptivity": 1},
+          "complex_on_off": {"family_relationship_script": 4, "risk_repeat_pattern": 7, "attachment_repair_receptivity": 4}
+        }
+      },
+      "confidence": {"enabled": true, "default": 80, "affects_weight": true},
+      "report_tags": ["relationship_experience"]
+    },
+    {
+      "id": "Q010",
+      "module": "relationship_history",
+      "module_id": "relationship_history",
+      "title": "上一段关系结束原因",
+      "prompt": "如果你有过上一段重要关系，它结束的主要原因是什么？可以多选，并把最主要原因放在最前。",
+      "question_type": "multi_with_primary",
+      "selection_mode": "multi_with_primary",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "trust_old_wound_memory",
+        "stability_environmental_pressure",
+        "values_family_orientation",
+        "boundary_control_need"
+      ],
+      "options": [
+        {"id": "communication_mismatch", "value": "A", "label": "沟通方式不合。"},
+        {"id": "distance_or_pressure", "value": "B", "label": "异地、时间或现实压力。"},
+        {"id": "trust_concealment_betrayal", "value": "C", "label": "信任问题、隐瞒或背叛。"},
+        {"id": "family_future_mismatch", "value": "D", "label": "家庭或未来规划不一致。"},
+        {"id": "feelings_faded", "value": "E", "label": "新鲜感消失或感情变淡。"},
+        {"id": "control_boundary_freedom", "value": "F", "label": "控制欲、边界或自由问题。"},
+        {"id": "no_important_experience", "value": "G", "label": "没有重要关系经验。"}
+      ],
+      "scoring": {
+        "base_weight": 0.85,
+        "evidence_quality": "self_report",
+        "dimension_effects": {
+          "communication_mismatch": {"communication_conflict_avoidance": 3, "trust_old_wound_memory": 2},
+          "distance_or_pressure": {"stability_environmental_pressure": 6, "trust_old_wound_memory": 1},
+          "trust_concealment_betrayal": {"trust_old_wound_memory": 8, "trust_suspicion_sensitivity": 6},
+          "family_future_mismatch": {"values_family_orientation": 6, "stability_environmental_pressure": 3},
+          "feelings_faded": {"trust_old_wound_memory": 1, "desire_alternative_seeking": 3},
+          "control_boundary_freedom": {"boundary_control_need": 6, "values_freedom_need": 4},
+          "no_important_experience": {"trust_old_wound_memory": -3, "stability_environmental_pressure": -1}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["past_breakup_reason"]
+    },
+    {
+      "id": "Q012",
+      "module": "relationship_history",
+      "module_id": "relationship_history",
+      "title": "被伤害后的信任恢复",
+      "prompt": "如果对方曾经隐瞒过重要事情，之后你有多容易重新相信？",
+      "question_type": "slider",
+      "selection_mode": "slider",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": ["trust_explanation_acceptance", "trust_old_wound_memory", "attachment_repair_receptivity"],
+      "scale": {"min": 0, "max": 100, "min_label": "几乎很难再信", "max_label": "如果对方修复得好，可以重新相信"},
+      "scoring": {
+        "base_weight": 0.75,
+        "evidence_quality": "medium",
+        "dimension_effects": {
+          "slider": {
+            "trust_explanation_acceptance": 10,
+            "attachment_repair_receptivity": 7,
+            "trust_old_wound_memory": -6
+          }
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["trust_repair_after_hurt"]
+    },
+    {
+      "id": "Q013",
+      "module": "relationship_history",
+      "module_id": "relationship_history",
+      "title": "最难接受的关系问题",
+      "prompt": "以下问题中，你最难接受哪些？可以多选，并把最难接受的一项放在最前。",
+      "question_type": "multi_with_primary",
+      "selection_mode": "multi_with_primary",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "moral_line_clarity",
+        "trust_loyalty_sensitivity",
+        "boundary_respect",
+        "communication_cruelty_under_conflict"
+      ],
+      "options": [
+        {"id": "clear_betrayal", "value": "A", "label": "出轨或明确背叛。"},
+        {"id": "long_term_lies", "value": "B", "label": "长期撒谎。"},
+        {"id": "ex_entanglement", "value": "C", "label": "和前任纠缠不清。"},
+        {"id": "cold_violence_disappear", "value": "D", "label": "冷暴力、失联、拉黑。"},
+        {"id": "controlling_boundary", "value": "E", "label": "强控制、查手机、限制社交。"},
+        {"id": "no_future_plan", "value": "F", "label": "没有未来规划。"},
+        {"id": "public_humiliation", "value": "G", "label": "公共场合羞辱。"},
+        {"id": "money_irresponsible", "value": "H", "label": "经济上不负责任。"}
+      ],
+      "scoring": {
+        "base_weight": 0.9,
+        "evidence_quality": "self_report",
+        "dimension_effects": {
+          "clear_betrayal": {"moral_line_clarity": 6, "trust_loyalty_sensitivity": 8},
+          "long_term_lies": {"moral_line_clarity": 5, "trust_old_wound_memory": 5, "trust_suspicion_sensitivity": 4},
+          "ex_entanglement": {"trust_loyalty_sensitivity": 6, "boundary_respect": 4},
+          "cold_violence_disappear": {"communication_cruelty_under_conflict": 6, "attachment_abandonment_anxiety": 4},
+          "controlling_boundary": {"boundary_respect": 7, "boundary_control_need": 5},
+          "no_future_plan": {"values_security_need": 5, "attachment_commitment_pace": 3},
+          "public_humiliation": {"communication_cruelty_under_conflict": 7, "self_face_sensitivity": 5},
+          "money_irresponsible": {"stability_resource_availability": -4, "moral_line_clarity": 3}
+        }
+      },
+      "confidence": {"enabled": true, "default": 75, "affects_weight": true},
+      "report_tags": ["relationship_red_lines"]
+    },
+    {
+      "id": "Q014",
+      "module": "relationship_history",
+      "module_id": "relationship_history",
+      "title": "过去关系中的自己",
+      "prompt": "回看过去的亲密关系，你觉得自己最常出现的问题是什么？可以多选，并把最主要的一项放在最前。",
+      "question_type": "multi_with_primary",
+      "selection_mode": "multi_with_primary",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "self_reflection_capacity",
+        "attachment_abandonment_anxiety",
+        "communication_conflict_avoidance",
+        "info_concealment_tendency"
+      ],
+      "options": [
+        {"id": "too_sensitive", "value": "A", "label": "太敏感、太容易不安。"},
+        {"id": "hard_to_express", "value": "B", "label": "不太会表达真实感受。"},
+        {"id": "avoid_or_cold", "value": "C", "label": "容易冷处理或逃避。"},
+        {"id": "sharp_words", "value": "D", "label": "容易说重话。"},
+        {"id": "over_accommodate", "value": "E", "label": "太迁就对方。"},
+        {"id": "need_too_much_freedom", "value": "F", "label": "太需要自由，不喜欢被束缚。"},
+        {"id": "hide_or_half_truth", "value": "G", "label": "容易隐瞒或说一半。"},
+        {"id": "cannot_tell", "value": "H", "label": "暂时想不出来。"}
+      ],
+      "scoring": {
+        "base_weight": 0.85,
+        "evidence_quality": "self_report",
+        "dimension_effects": {
+          "too_sensitive": {"self_reflection_capacity": 2, "attachment_abandonment_anxiety": 6},
+          "hard_to_express": {"self_reflection_capacity": 2, "communication_directness": -5, "attachment_vulnerability_fear": 4},
+          "avoid_or_cold": {"self_reflection_capacity": 2, "communication_conflict_avoidance": 6, "attachment_intimacy_avoidance": 4},
+          "sharp_words": {"self_reflection_capacity": 2, "communication_cruelty_under_conflict": 5, "emotion_impulsivity": 4},
+          "over_accommodate": {"self_reflection_capacity": 2, "boundary_autonomy_assertion": -5, "emotion_reassurance_need": 3},
+          "need_too_much_freedom": {"self_reflection_capacity": 2, "values_freedom_need": 6, "attachment_independence_need": 4},
+          "hide_or_half_truth": {"self_reflection_capacity": 2, "info_concealment_tendency": 6, "communication_directness": -4},
+          "cannot_tell": {"self_reflection_capacity": -5}
+        }
+      },
+      "confidence": {"enabled": true, "default": 65, "affects_weight": true},
+      "report_tags": ["past_self_pattern"]
+    },
+    {
+      "id": "Q015",
+      "module": "relationship_history",
+      "module_id": "relationship_history",
+      "title": "过去关系中的对方",
+      "prompt": "你过去关系中，对方最让你难受的模式是什么？可以多选，并把最主要的一项放在最前。",
+      "question_type": "multi_with_primary",
+      "selection_mode": "multi_with_primary",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "trust_old_wound_memory",
+        "trust_suspicion_sensitivity",
+        "boundary_possessiveness",
+        "moral_harm_awareness"
+      ],
+      "options": [
+        {"id": "hot_and_cold", "value": "A", "label": "忽冷忽热。"},
+        {"id": "no_explanation", "value": "B", "label": "不解释、不沟通。"},
+        {"id": "unclear_opposite_sex_boundary", "value": "C", "label": "异性边界不清。"},
+        {"id": "controlling", "value": "D", "label": "控制欲强。"},
+        {"id": "lied_or_hidden", "value": "E", "label": "说谎或隐瞒。"},
+        {"id": "no_responsibility", "value": "F", "label": "不承担责任。"},
+        {"id": "emotional_attack", "value": "G", "label": "情绪攻击或羞辱。"},
+        {"id": "no_clear_pattern", "value": "H", "label": "没有明显模式。"}
+      ],
+      "scoring": {
+        "base_weight": 0.85,
+        "evidence_quality": "self_report",
+        "dimension_effects": {
+          "hot_and_cold": {"trust_old_wound_memory": 5, "attachment_abandonment_anxiety": 4},
+          "no_explanation": {"trust_old_wound_memory": 4, "trust_suspicion_sensitivity": 3},
+          "unclear_opposite_sex_boundary": {"trust_suspicion_sensitivity": 6, "trust_loyalty_sensitivity": 6},
+          "controlling": {"boundary_possessiveness": 6, "boundary_respect": 5},
+          "lied_or_hidden": {"trust_old_wound_memory": 7, "trust_suspicion_sensitivity": 6},
+          "no_responsibility": {"moral_harm_awareness": 4, "stability_resource_availability": -3},
+          "emotional_attack": {"moral_harm_awareness": 6, "communication_cruelty_under_conflict": 6},
+          "no_clear_pattern": {"trust_old_wound_memory": -2, "trust_suspicion_sensitivity": -2}
+        }
+      },
+      "confidence": {"enabled": true, "default": 65, "affects_weight": true},
+      "report_tags": ["past_partner_pattern"]
+    },
+    {
+      "id": "Q016",
+      "module": "relationship_history",
+      "module_id": "relationship_history",
+      "title": "复合态度",
+      "prompt": "如果曾经很重要的人回来找你，你更可能怎么反应？",
+      "question_type": "primary_with_secondary",
+      "selection_mode": "primary_with_secondary",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "attachment_repair_receptivity",
+        "risk_repeat_pattern",
+        "desire_alternative_seeking"
+      ],
+      "options": [
+        {"id": "direct_refusal", "value": "A", "label": "直接拒绝，不想回头。"},
+        {"id": "listen_but_not_trust", "value": "B", "label": "会听解释，但不会马上相信。"},
+        {"id": "soft_but_require_change", "value": "C", "label": "会心软，但会要求改变。"},
+        {"id": "easily_fall_back", "value": "D", "label": "很容易重新陷进去。"},
+        {"id": "depends_new_option", "value": "E", "label": "看当时是否有新的关系或更好选择。"}
+      ],
+      "scoring": {
+        "base_weight": 0.85,
+        "evidence_quality": "medium",
+        "dimension_effects": {
+          "direct_refusal": {"attachment_repair_receptivity": -6, "risk_repeat_pattern": -4, "desire_alternative_seeking": 2},
+          "listen_but_not_trust": {"attachment_repair_receptivity": 2, "risk_repeat_pattern": -1, "trust_explanation_acceptance": -3},
+          "soft_but_require_change": {"attachment_repair_receptivity": 5, "risk_repeat_pattern": 1, "trust_explanation_acceptance": 2},
+          "easily_fall_back": {"attachment_repair_receptivity": 7, "risk_repeat_pattern": 6, "attachment_abandonment_anxiety": 4},
+          "depends_new_option": {"desire_alternative_seeking": 6, "risk_repeat_pattern": 1}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["reunion_attitude"]
+    },
+    {
       "id": "Q017",
       "module": "intimacy_attachment",
       "module_id": "intimacy_attachment",
@@ -125,7 +611,7 @@
       "selection_mode": "primary_with_secondary",
       "required": true,
       "allow_skip": false,
-      "modes": ["mvp"],
+      "modes": ["quick"],
       "dimensions": ["attachment_abandonment_anxiety", "trust_checking_impulse", "emotion_reassurance_need"],
       "options": [
         {"id": "assume_busy", "value": "A", "label": "先默认对方在忙。"},
@@ -158,7 +644,7 @@
       "selection_mode": "axis_2d",
       "required": true,
       "allow_skip": false,
-      "modes": ["mvp"],
+      "modes": ["quick"],
       "dimensions": [
         "attachment_abandonment_anxiety",
         "attachment_intimacy_avoidance",
@@ -190,7 +676,7 @@
       "selection_mode": "slider",
       "required": true,
       "allow_skip": false,
-      "modes": ["mvp"],
+      "modes": ["quick"],
       "dimensions": ["attachment_closeness_need", "digital_response_norm", "social_dependency"],
       "scale": {"min": 0, "max": 100, "min_label": "不需要每天联系", "max_label": "希望每天频繁联系"},
       "scoring": {
@@ -213,7 +699,7 @@
       "selection_mode": "slider",
       "required": true,
       "allow_skip": false,
-      "modes": ["mvp"],
+      "modes": ["quick"],
       "dimensions": ["attachment_independence_need", "values_freedom_need", "boundary_autonomy_assertion"],
       "scale": {"min": 0, "max": 100, "min_label": "几乎希望生活高度融合", "max_label": "很需要私人空间"},
       "scoring": {
@@ -236,7 +722,7 @@
       "selection_mode": "primary_with_secondary",
       "required": true,
       "allow_skip": false,
-      "modes": ["mvp"],
+      "modes": ["quick"],
       "dimensions": [
         "attachment_vulnerability_fear",
         "communication_directness",
@@ -265,6 +751,29 @@
       "report_tags": ["vulnerability_expression_pattern"]
     },
     {
+      "id": "Q022",
+      "module": "intimacy_attachment",
+      "module_id": "intimacy_attachment",
+      "title": "被需要感",
+      "prompt": "你有多希望自己在对方生活中是“很重要、不可替代”的人？",
+      "question_type": "slider",
+      "selection_mode": "slider",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": ["self_validation_need", "attachment_closeness_need", "values_belonging_need"],
+      "scale": {"min": 0, "max": 100, "min_label": "不太需要这种感觉", "max_label": "非常需要"},
+      "scoring": {
+        "base_weight": 0.75,
+        "evidence_quality": "medium",
+        "dimension_effects": {
+          "slider": {"self_validation_need": 10, "attachment_closeness_need": 6, "values_belonging_need": 5}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["importance_need"]
+    },
+    {
       "id": "Q023",
       "module": "intimacy_attachment",
       "module_id": "intimacy_attachment",
@@ -274,7 +783,7 @@
       "selection_mode": "forced_single",
       "required": true,
       "allow_skip": false,
-      "modes": ["mvp"],
+      "modes": ["quick"],
       "dimensions": ["attachment_reliance_comfort", "attachment_vulnerability_fear", "self_face_sensitivity"],
       "options": [
         {"id": "natural_reliance", "value": "A", "label": "很自然，亲密关系本来可以互相依靠。"},
@@ -298,6 +807,79 @@
       "report_tags": ["reliance_comfort_pattern"]
     },
     {
+      "id": "Q024",
+      "module": "intimacy_attachment",
+      "module_id": "intimacy_attachment",
+      "title": "被别人依赖",
+      "prompt": "如果伴侣经常依赖你、需要你安慰和帮忙，你通常会怎么感受？",
+      "question_type": "forced_single",
+      "selection_mode": "forced_single",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": ["attachment_reliance_comfort", "stability_resource_availability", "boundary_dominance_need"],
+      "options": [
+        {"id": "feel_trusted", "value": "A", "label": "会觉得被信任，愿意承担。"},
+        {"id": "accept_with_boundary", "value": "B", "label": "可以接受，但希望有边界。"},
+        {"id": "will_get_tired", "value": "C", "label": "一开始愿意，久了会累。"},
+        {"id": "pressure_escape", "value": "D", "label": "压力很大，会想逃开。"},
+        {"id": "feel_more_secure", "value": "E", "label": "会觉得对方离不开我，关系更稳。"}
+      ],
+      "scoring": {
+        "base_weight": 0.85,
+        "evidence_quality": "medium",
+        "dimension_effects": {
+          "feel_trusted": {"attachment_reliance_comfort": 6, "stability_resource_availability": 3, "boundary_dominance_need": 1},
+          "accept_with_boundary": {"attachment_reliance_comfort": 3, "boundary_respect": 4, "stability_resource_availability": 1},
+          "will_get_tired": {"attachment_reliance_comfort": -1, "stability_resource_availability": -4, "attachment_independence_need": 2},
+          "pressure_escape": {"attachment_reliance_comfort": -6, "stability_resource_availability": -5, "attachment_intimacy_avoidance": 4},
+          "feel_more_secure": {"attachment_reliance_comfort": 5, "boundary_dominance_need": 6, "self_validation_need": 4}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["being_relied_on_pattern"]
+    },
+    {
+      "id": "Q025",
+      "module": "intimacy_attachment",
+      "module_id": "intimacy_attachment",
+      "title": "关系推进节奏",
+      "prompt": "关系变认真时，你认为哪些步骤最重要？可以多选，并把最重要的一项放在最前。",
+      "question_type": "multi_with_primary",
+      "selection_mode": "multi_with_primary",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "attachment_commitment_pace",
+        "values_family_orientation",
+        "digital_social_media_display",
+        "values_freedom_need"
+      ],
+      "options": [
+        {"id": "define_relationship", "value": "A", "label": "明确关系名分。"},
+        {"id": "stable_meeting_contact", "value": "B", "label": "稳定见面和联系。"},
+        {"id": "tell_friends", "value": "C", "label": "公开给朋友知道。"},
+        {"id": "family_future_plan", "value": "D", "label": "了解彼此家庭和未来规划。"},
+        {"id": "life_resource_fit", "value": "E", "label": "经济和生活节奏能互相适应。"},
+        {"id": "keep_personal_space", "value": "F", "label": "保留彼此个人空间。"}
+      ],
+      "scoring": {
+        "base_weight": 0.85,
+        "evidence_quality": "medium",
+        "dimension_effects": {
+          "define_relationship": {"attachment_commitment_pace": 7, "values_security_need": 4},
+          "stable_meeting_contact": {"attachment_commitment_pace": 4, "attachment_closeness_need": 4},
+          "tell_friends": {"digital_social_media_display": 6, "social_reputation_sensitivity": 3},
+          "family_future_plan": {"values_family_orientation": 7, "values_security_need": 5},
+          "life_resource_fit": {"stability_resource_availability": 5, "values_security_need": 3},
+          "keep_personal_space": {"values_freedom_need": 6, "attachment_independence_need": 4}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["commitment_pacing_steps"]
+    },
+    {
       "id": "Q026",
       "module": "intimacy_attachment",
       "module_id": "intimacy_attachment",
@@ -307,7 +889,7 @@
       "selection_mode": "slider",
       "required": true,
       "allow_skip": false,
-      "modes": ["mvp"],
+      "modes": ["quick"],
       "dimensions": ["attachment_repair_receptivity", "trust_explanation_acceptance", "emotion_recovery_speed"],
       "scale": {"min": 0, "max": 100, "min_label": "很难靠近", "max_label": "如果态度真诚，可以较快靠近"},
       "scoring": {
@@ -330,7 +912,7 @@
       "selection_mode": "multi_with_primary",
       "required": true,
       "allow_skip": false,
-      "modes": ["mvp"],
+      "modes": ["quick"],
       "dimensions": [
         "attachment_abandonment_anxiety",
         "attachment_intimacy_avoidance",
