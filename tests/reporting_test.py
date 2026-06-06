@@ -14,7 +14,18 @@ from if_game.event_loader import load_playtest_scenarios
 from if_game.reporting import format_summary_report, format_transcript, write_report
 
 
-FORBIDDEN_TOKENS = ["真实信任", "真实好感", "trust=", "security=", "conflict="]
+REQUIRED_REPORT_TOKENS = ["关系复盘报告", "结局", "副标签", "关键转折点", "主要原因", "后续隐患"]
+FORBIDDEN_TOKENS = [
+    "scenario_id:",
+    "feedback_level:",
+    "active_hooks:",
+    "triggered_events:",
+    "trust=",
+    "security=",
+    "conflict=",
+    "真实信任",
+    "真实好感",
+]
 
 
 def _load_scenario(scenario_id: str) -> dict:
@@ -34,8 +45,11 @@ def main() -> None:
 
     transcript_report = format_transcript(result)
     summary_report = format_summary_report(result)
-    assert "scenario_repair" in transcript_report
-    assert "final_stage" in summary_report
+    for token in REQUIRED_REPORT_TOKENS:
+        assert token in transcript_report
+    assert "scenario_repair" not in transcript_report
+    assert "final_stage:" not in summary_report
+    assert "有效修复路径" in summary_report
     _assert_no_internal_values(transcript_report)
     _assert_no_internal_values(summary_report)
 
@@ -44,7 +58,7 @@ def main() -> None:
         written_path = write_report(result, output_path)
         assert written_path.exists()
         saved_text = written_path.read_text(encoding="utf-8")
-        assert "IF 试玩记录" in saved_text
+        assert "IF 关系复盘报告" in saved_text
         _assert_no_internal_values(saved_text)
 
     print("reporting test passed")

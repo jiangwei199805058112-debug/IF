@@ -22,6 +22,7 @@
       },
       "expected": {
         "allowed_final_stages": ["升温", "确认关系"],
+        "expected_sub_tags": ["有效修复"],
         "min_memory_count": 1,
         "required_events": ["MSG_001", "SOC_001", "CONFLICT_001"],
         "forbidden_transcript_tokens": ["真实信任", "真实好感", "trust="]
@@ -48,7 +49,8 @@
         }
       },
       "expected": {
-        "allowed_final_stages": ["冷淡", "继续暧昧", "分分合合倾向"],
+        "allowed_final_stages": ["暧昧降温", "冷淡"],
+        "expected_sub_tags": ["冷处理循环", "边界未清"],
         "min_memory_count": 2,
         "required_events": ["MSG_001", "SOC_001", "CONFLICT_001"],
         "forbidden_transcript_tokens": ["真实信任", "真实好感", "trust="]
@@ -75,7 +77,8 @@
         }
       },
       "expected": {
-        "allowed_final_stages": ["分手危机", "分手", "分分合合倾向"],
+        "allowed_final_stages": ["分手危机"],
+        "expected_sub_tags": ["重大谎言", "分分合合倾向"],
         "min_memory_count": 3,
         "required_events": ["MSG_001", "SOC_001", "CONFLICT_001"],
         "forbidden_transcript_tokens": ["真实信任", "真实好感", "trust="]
@@ -102,7 +105,8 @@
         }
       },
       "expected": {
-        "allowed_final_stages": ["继续暧昧", "冷淡", "升温"],
+        "allowed_final_stages": ["升温", "继续暧昧"],
+        "expected_sub_tags": ["有效修复", "边界未清"],
         "min_memory_count": 2,
         "required_events": ["MSG_001", "SOC_001", "CONFLICT_001"],
         "forbidden_transcript_tokens": ["真实信任", "真实好感", "trust="]
@@ -129,7 +133,8 @@
         }
       },
       "expected": {
-        "allowed_final_stages": ["分分合合倾向", "分手危机"],
+        "allowed_final_stages": ["分手危机"],
+        "expected_sub_tags": ["分分合合倾向", "信任受损"],
         "min_memory_count": 3,
         "required_events": ["MSG_001", "SOC_001", "CONFLICT_001"],
         "forbidden_transcript_tokens": ["真实信任", "真实好感", "trust="]

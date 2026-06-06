@@ -110,6 +110,28 @@ class PerceivedRelationshipState:
 
 
 @dataclass
+class RelationshipReview:
+    main_stage: str
+    sub_tags: list[str] = field(default_factory=list)
+    main_reasons: list[str] = field(default_factory=list)
+    turning_points: list[str] = field(default_factory=list)
+    risks: list[str] = field(default_factory=list)
+    repair_chances: list[str] = field(default_factory=list)
+    summary: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "main_stage": self.main_stage,
+            "sub_tags": list(self.sub_tags),
+            "main_reasons": list(self.main_reasons),
+            "turning_points": list(self.turning_points),
+            "risks": list(self.risks),
+            "repair_chances": list(self.repair_chances),
+            "summary": self.summary,
+        }
+
+
+@dataclass
 class RelationshipState:
     day: int
     stage: str

@@ -36,6 +36,10 @@ def _choose(prompt: str, options: list[tuple[str, str]], default_index: int = 0)
     return options[default_index][0]
 
 
+def _join_cli_list(values: list[str]) -> str:
+    return "、".join(values) if values else "无"
+
+
 def _load_scenarios() -> list[dict[str, Any]]:
     return load_playtest_scenarios().get("scenarios", [])
 
@@ -100,11 +104,12 @@ def _run_single_scenario(scenario_id: str, export_path: str | None = None) -> No
 
 def _run_all_scenarios(export_path: str | None = None) -> None:
     results = run_all_playtest_scenarios()
-    print("----- 多场景摘要 -----")
+    print("----- 多场景关系复盘摘要 -----")
     for result in results:
+        review = result["review"]
         print(
-            f"{result['scenario_id']}：{result['final_stage']}；"
-            f"记忆 {result['memory_count']} 条；反馈 {result['feedback_level']}"
+            f"{result['scenario_title']}：{review['main_stage']}；"
+            f"副标签 {_join_cli_list(review['sub_tags'])}"
         )
     if export_path:
         path = write_scenario_summary(results, export_path)
