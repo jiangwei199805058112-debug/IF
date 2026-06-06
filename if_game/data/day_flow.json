@@ -1,0 +1,108 @@
+[
+  {
+    "day": 1,
+    "default_rhythm": "开局状态确认",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": null,
+    "notes": "确认当前关系阶段、聊天节奏和基本边界。"
+  },
+  {
+    "day": 2,
+    "default_rhythm": "普通聊天",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": null,
+    "notes": "平淡日用于建立基线，不靠大事件推进。"
+  },
+  {
+    "day": 3,
+    "default_rhythm": "消息延迟小事件",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": "MSG_001",
+    "default_branch_id": "MSG_001_B",
+    "default_choice_tag": "ask_softly",
+    "notes": "验证没有已读机制时的猜测和解释不足。"
+  },
+  {
+    "day": 4,
+    "default_rhythm": "平淡日/工作学习压力",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": null,
+    "notes": "忙碌不直接等于冷淡，但会影响回复质量。"
+  },
+  {
+    "day": 5,
+    "default_rhythm": "约饭或见面提议",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": null,
+    "notes": "观察双方是否愿意主动协调时间。"
+  },
+  {
+    "day": 6,
+    "default_rhythm": "餐厅/消费/时间安排",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": null,
+    "notes": "暂不实现完整经济系统，只保留消费压力提示。"
+  },
+  {
+    "day": 7,
+    "default_rhythm": "中期模糊反馈",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": null,
+    "midpoint_feedback": true,
+    "notes": "输出一次非数字关系反馈。"
+  },
+  {
+    "day": 8,
+    "default_rhythm": "异性饭局/神秘电话线索",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": "SOC_001",
+    "default_branch_id": "SOC_001_B",
+    "default_choice_tag": "set_boundary",
+    "notes": "引入边界、半真半假和破绽。"
+  },
+  {
+    "day": 9,
+    "default_rhythm": "追问/解释/隐瞒余波",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": null,
+    "notes": "事件后余波影响双方回复和主动性。"
+  },
+  {
+    "day": 10,
+    "default_rhythm": "平淡日或冷淡延续",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": null,
+    "notes": "观察平淡日是否能修复轻微不安。"
+  },
+  {
+    "day": 11,
+    "default_rhythm": "冲突升级或修复机会",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": null,
+    "notes": "为后续冲突事件铺垫。"
+  },
+  {
+    "day": 12,
+    "default_rhythm": "吵架后是否解决",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": "CONFLICT_001",
+    "default_branch_id": "CONFLICT_001_C",
+    "default_choice_tag": "private_talk",
+    "notes": "测试冷战、修复和记忆写入。"
+  },
+  {
+    "day": 13,
+    "default_rhythm": "冷战/拉黑/熬夜后果",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": null,
+    "notes": "检查前一天冲突是否留下余波。"
+  },
+  {
+    "day": 14,
+    "default_rhythm": "阶段结算",
+    "time_blocks": ["早上", "白天", "晚上", "深夜"],
+    "event_id": null,
+    "stage_settlement": true,
+    "notes": "输出第 14 天阶段结算。"
+  }
+]

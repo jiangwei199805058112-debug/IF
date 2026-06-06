@@ -1,0 +1,406 @@
+{
+  "events": [
+    {
+      "event_id": "MSG_001",
+      "title": "对方很久没回消息",
+      "description": "你发出的消息很久没有回应。微信没有已读机制，你只能根据后续解释判断。",
+      "choices": [
+        {
+          "id": "accept",
+          "tag": "接受解释",
+          "label": "先接受解释，继续观察",
+          "outcome_delta": {
+            "trust": "slight_up",
+            "conflict": "slight_down"
+          }
+        },
+        {
+          "id": "ask_softly",
+          "tag": "温和确认",
+          "label": "温和确认对方是不是太忙",
+          "outcome_delta": {
+            "pressure": "slight_up"
+          }
+        },
+        {
+          "id": "push_hard",
+          "tag": "强硬质问",
+          "label": "直接追问为什么不回",
+          "outcome_delta": {
+            "pressure": "medium_up",
+            "conflict": "slight_up"
+          }
+        },
+        {
+          "id": "cool_down",
+          "tag": "冷处理",
+          "label": "自己也冷淡一点",
+          "outcome_delta": {
+            "security": "slight_down",
+            "conflict": "slight_up",
+            "disappointment": "slight_up"
+          }
+        }
+      ],
+      "branches": [
+        {
+          "branch_id": "MSG_001_A",
+          "truth": "真忙，后续主动解释",
+          "visible_info": "对方很久没回，晚些时候主动解释自己在处理工作。",
+          "npc_explanation": "刚才一直在开会，手机放一边了。不是故意不回。",
+          "behavior_tags": ["坦白", "接受解释"],
+          "outcome_delta": {
+            "trust": "slight_up",
+            "security": "slight_up",
+            "pressure": "slight_up"
+          },
+          "perceived_feedback": {
+            "level": "stable",
+            "text": "解释基本说得通，你的不安降了一些。"
+          },
+          "memory": {
+            "write": false,
+            "summary": "",
+            "resolved": true
+          },
+          "next_hooks": ["plain_day_repair"]
+        },
+        {
+          "branch_id": "MSG_001_B",
+          "truth": "真忙，但解释很敷衍",
+          "visible_info": "对方隔了很久只回了一句“刚忙完”。",
+          "npc_explanation": "忙，没空细说。",
+          "behavior_tags": ["回避", "追问"],
+          "outcome_delta": {
+            "security": "slight_down",
+            "pressure": "slight_up",
+            "conflict": "slight_up",
+            "flaw": "slight_up"
+          },
+          "perceived_feedback": {
+            "level": "slight_unease",
+            "text": "你知道对方可能真忙，但这个解释太少了。"
+          },
+          "memory": {
+            "write": true,
+            "summary": "长时间未回复后解释敷衍",
+            "resolved": false
+          },
+          "next_hooks": ["reply_pattern_watch"]
+        },
+        {
+          "branch_id": "MSG_001_E",
+          "truth": "正在隐瞒异性社交",
+          "visible_info": "对方晚回，解释里一直没有说清具体和谁在一起。",
+          "npc_explanation": "就是和朋友在外面，没什么好说的。",
+          "behavior_tags": ["隐瞒重点", "查证", "强硬质问"],
+          "outcome_delta": {
+            "trust": "medium_down",
+            "security": "medium_down",
+            "pressure": "medium_up",
+            "conflict": "medium_up",
+            "flaw": "medium_up"
+          },
+          "perceived_feedback": {
+            "level": "strong_suspicion",
+            "text": "你没有证据，但最关键的对象信息一直缺失。"
+          },
+          "memory": {
+            "write": true,
+            "summary": "异性社交信息被含糊带过",
+            "resolved": false
+          },
+          "next_hooks": ["SOC_001", "trust_talk"]
+        }
+      ]
+    },
+    {
+      "event_id": "SOC_001",
+      "title": "异性饭局/神秘电话",
+      "description": "一次饭局或电话让社交边界变得不清楚。",
+      "choices": [
+        {
+          "id": "accept",
+          "tag": "接受解释",
+          "label": "先接受对方说明",
+          "outcome_delta": {
+            "conflict": "slight_down"
+          }
+        },
+        {
+          "id": "set_boundary",
+          "tag": "设边界",
+          "label": "说清楚异性社交边界",
+          "outcome_delta": {
+            "trust": "slight_up",
+            "pressure": "slight_up"
+          }
+        },
+        {
+          "id": "verify",
+          "tag": "查证",
+          "label": "去确认朋友圈或共同朋友信息",
+          "outcome_delta": {
+            "pressure": "medium_up",
+            "conflict": "slight_up",
+            "flaw": "slight_up"
+          }
+        },
+        {
+          "id": "cold",
+          "tag": "冷处理",
+          "label": "不继续谈，先冷下来",
+          "outcome_delta": {
+            "security": "slight_down",
+            "conflict": "slight_up",
+            "disappointment": "slight_up"
+          }
+        }
+      ],
+      "branches": [
+        {
+          "branch_id": "SOC_001_A",
+          "truth": "普通同事饭局，完全坦白",
+          "visible_info": "对方提前说了和同事吃饭，也说明了大概时间。",
+          "npc_explanation": "是项目同事一起吃饭，结束我会告诉你。",
+          "behavior_tags": ["坦白", "设边界"],
+          "outcome_delta": {
+            "trust": "slight_up",
+            "security": "slight_up"
+          },
+          "perceived_feedback": {
+            "level": "stable",
+            "text": "你知道对方在做什么，也知道这顿饭的边界。"
+          },
+          "memory": {
+            "write": false,
+            "summary": "",
+            "resolved": true
+          },
+          "next_hooks": ["plain_day"]
+        },
+        {
+          "branch_id": "SOC_001_B",
+          "truth": "普通异性朋友，半真半假",
+          "visible_info": "对方说和朋友吃饭，后来你才知道其中有异性朋友。",
+          "npc_explanation": "我说朋友也没错，怕你多想才没展开。",
+          "behavior_tags": ["半真半假", "设边界", "追问"],
+          "outcome_delta": {
+            "trust": "medium_down",
+            "security": "slight_down",
+            "pressure": "medium_up",
+            "conflict": "medium_up",
+            "flaw": "medium_up"
+          },
+          "perceived_feedback": {
+            "level": "obvious_abnormal",
+            "text": "事情本身未必严重，但说法让你不舒服。"
+          },
+          "memory": {
+            "write": true,
+            "summary": "异性朋友饭局没有提前说清",
+            "resolved": false
+          },
+          "next_hooks": ["boundary_talk", "CONFLICT_001"]
+        },
+        {
+          "branch_id": "SOC_001_C",
+          "truth": "前任见面，隐瞒重点",
+          "visible_info": "对方外出后解释很少，避开了对方是谁。",
+          "npc_explanation": "只是以前认识的人，没必要说这么细。",
+          "behavior_tags": ["隐瞒重点", "强硬质问"],
+          "outcome_delta": {
+            "trust": "large_down",
+            "security": "medium_down",
+            "pressure": "medium_up",
+            "conflict": "large_up",
+            "disappointment": "medium_up",
+            "flaw": "large_up",
+            "crisis": true
+          },
+          "perceived_feedback": {
+            "level": "relationship_crisis",
+            "text": "前任这个信息被省略后，整件事变得不一样了。"
+          },
+          "memory": {
+            "write": true,
+            "summary": "前任见面被隐瞒",
+            "resolved": false
+          },
+          "next_hooks": ["crisis", "breakup_talk"]
+        },
+        {
+          "branch_id": "SOC_001_F",
+          "truth": "完全撒谎说在家/加班",
+          "visible_info": "对方的说法和之后出现的时间线对不上。",
+          "npc_explanation": "我就是在加班，你别总怀疑。",
+          "behavior_tags": ["撒谎", "反向指责", "查证"],
+          "outcome_delta": {
+            "trust": "large_down",
+            "security": "medium_down",
+            "pressure": "large_up",
+            "conflict": "large_up",
+            "disappointment": "large_up",
+            "flaw": "large_up",
+            "crisis": true
+          },
+          "perceived_feedback": {
+            "level": "relationship_crisis",
+            "text": "这已经不是没有说清，而是说法对不上。"
+          },
+          "memory": {
+            "write": true,
+            "summary": "重大谎言暴露",
+            "resolved": false
+          },
+          "next_hooks": ["crisis", "CONFLICT_001"]
+        }
+      ]
+    },
+    {
+      "event_id": "CONFLICT_001",
+      "title": "吵架后是否解决",
+      "description": "前面的不安和边界问题终于变成一次明确冲突。",
+      "choices": [
+        {
+          "id": "private_talk",
+          "tag": "私下沟通",
+          "label": "约定私下把问题说清",
+          "outcome_delta": {
+            "trust": "slight_up",
+            "conflict": "medium_down",
+            "disappointment": "slight_down"
+          }
+        },
+        {
+          "id": "apologize_boundary",
+          "tag": "道歉并设边界",
+          "label": "承认影响，并约定下次怎么做",
+          "outcome_delta": {
+            "trust": "medium_up",
+            "security": "slight_up",
+            "conflict": "medium_down",
+            "disappointment": "medium_down"
+          }
+        },
+        {
+          "id": "cold",
+          "tag": "冷处理",
+          "label": "先不谈，互相冷静",
+          "outcome_delta": {
+            "security": "medium_down",
+            "conflict": "slight_up",
+            "disappointment": "medium_up"
+          }
+        },
+        {
+          "id": "reconnect_or_break",
+          "tag": "复联/分手",
+          "label": "复联后谈清楚，不行就结束",
+          "outcome_delta": {
+            "pressure": "slight_up"
+          }
+        }
+      ],
+      "branches": [
+        {
+          "branch_id": "CONFLICT_001_A",
+          "truth": "当晚说清楚",
+          "visible_info": "你们都还愿意谈，只是情绪有点紧。",
+          "npc_explanation": "这次我也有问题，我们把具体边界说清楚。",
+          "behavior_tags": ["私下沟通", "道歉", "设边界"],
+          "outcome_delta": {
+            "trust": "medium_up",
+            "security": "slight_up",
+            "pressure": "slight_down",
+            "conflict": "medium_down",
+            "disappointment": "medium_down"
+          },
+          "perceived_feedback": {
+            "level": "stable",
+            "text": "这次不算轻松，但问题至少被摆到了台面上。"
+          },
+          "memory": {
+            "write": true,
+            "summary": "一次有效修复：当晚说清楚并设边界",
+            "resolved": true
+          },
+          "next_hooks": ["repair_success"]
+        },
+        {
+          "branch_id": "CONFLICT_001_C",
+          "truth": "冷战",
+          "visible_info": "你们停止了继续沟通，回复明显变少。",
+          "npc_explanation": "我现在不想吵，先这样吧。",
+          "behavior_tags": ["冷处理"],
+          "outcome_delta": {
+            "trust": "medium_down",
+            "security": "medium_down",
+            "pressure": "slight_up",
+            "conflict": "medium_up",
+            "disappointment": "medium_up"
+          },
+          "perceived_feedback": {
+            "level": "obvious_abnormal",
+            "text": "不吵了，但沉默让事情变得更重。"
+          },
+          "memory": {
+            "write": true,
+            "summary": "冲突后冷战，问题没有解决",
+            "resolved": false
+          },
+          "next_hooks": ["cold_war", "reply_slowdown"]
+        },
+        {
+          "branch_id": "CONFLICT_001_D",
+          "truth": "情绪性拉黑",
+          "visible_info": "争吵最激烈时，对方切断了联系。",
+          "npc_explanation": "我不想再看到这些消息。",
+          "behavior_tags": ["拉黑", "复联"],
+          "outcome_delta": {
+            "trust": "large_down",
+            "security": "large_down",
+            "pressure": "medium_up",
+            "conflict": "large_up",
+            "disappointment": "large_up",
+            "crisis": true
+          },
+          "perceived_feedback": {
+            "level": "relationship_crisis",
+            "text": "这不是普通冷静，你们的连接被切断了。"
+          },
+          "memory": {
+            "write": true,
+            "summary": "情绪性拉黑",
+            "resolved": false
+          },
+          "next_hooks": ["crisis", "reconnect_talk"]
+        },
+        {
+          "branch_id": "CONFLICT_001_E",
+          "truth": "公共场合吵架",
+          "visible_info": "冲突在朋友面前爆发，场面变得尴尬。",
+          "npc_explanation": "你非要当着别人说，我也很难受。",
+          "behavior_tags": ["公共场合争吵", "情绪爆发"],
+          "outcome_delta": {
+            "trust": "medium_down",
+            "security": "slight_down",
+            "pressure": "medium_up",
+            "conflict": "large_up",
+            "disappointment": "large_up"
+          },
+          "perceived_feedback": {
+            "level": "strong_suspicion",
+            "text": "问题本身之外，场合也让这件事留下了痕迹。"
+          },
+          "memory": {
+            "write": true,
+            "summary": "公共场合冲突留下旧账",
+            "resolved": false
+          },
+          "next_hooks": ["public_conflict", "private_repair"]
+        }
+      ]
+    }
+  ]
+}

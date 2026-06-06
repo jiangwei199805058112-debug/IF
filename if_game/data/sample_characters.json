@@ -1,0 +1,219 @@
+{
+  "pairs": {
+    "A": {
+      "id": "A",
+      "title": "组合A：高安全感需求 × 忙碌回避型",
+      "test_focus": ["消息不回", "解释不足", "冷战"],
+      "player": {
+        "id": "player_a",
+        "display_name": "林夏",
+        "role": "player",
+        "age": 24,
+        "work_status": "上班",
+        "personality": {
+          "security_need": "high",
+          "emotional_stability": "medium",
+          "communication_initiative": "medium",
+          "trust_baseline": "low",
+          "jealousy_tendency": "medium",
+          "avoidance_tendency": "low",
+          "honesty_tendency": "high",
+          "double_standard_tendency": "low",
+          "test_tendency": "medium",
+          "social_openness": "medium"
+        }
+      },
+      "npc": {
+        "id": "npc_a",
+        "display_name": "周然",
+        "role": "npc",
+        "age": 26,
+        "work_status": "上班，加班多",
+        "personality": {
+          "security_need": "medium",
+          "emotional_stability": "medium",
+          "communication_initiative": "low",
+          "trust_baseline": "medium",
+          "jealousy_tendency": "low",
+          "avoidance_tendency": "high",
+          "honesty_tendency": "medium",
+          "double_standard_tendency": "low",
+          "test_tendency": "low",
+          "social_openness": "medium"
+        }
+      }
+    },
+    "B": {
+      "id": "B",
+      "title": "组合B：高社交开放 × 高吃醋双标",
+      "test_focus": ["异性朋友", "双标", "边界协议"],
+      "player": {
+        "id": "player_b",
+        "display_name": "沈亦",
+        "role": "player",
+        "age": 25,
+        "work_status": "上班",
+        "personality": {
+          "security_need": "medium",
+          "emotional_stability": "medium",
+          "communication_initiative": "medium",
+          "trust_baseline": "medium",
+          "jealousy_tendency": "low",
+          "avoidance_tendency": "low",
+          "honesty_tendency": "medium",
+          "double_standard_tendency": "low",
+          "test_tendency": "low",
+          "social_openness": "high"
+        }
+      },
+      "npc": {
+        "id": "npc_b",
+        "display_name": "许知遥",
+        "role": "npc",
+        "age": 24,
+        "work_status": "刚工作",
+        "personality": {
+          "security_need": "high",
+          "emotional_stability": "low",
+          "communication_initiative": "medium",
+          "trust_baseline": "low",
+          "jealousy_tendency": "high",
+          "avoidance_tendency": "medium",
+          "honesty_tendency": "medium",
+          "double_standard_tendency": "high",
+          "test_tendency": "medium",
+          "social_openness": "high"
+        }
+      }
+    },
+    "C": {
+      "id": "C",
+      "title": "组合C：物质展示需求 × 低收入务实型",
+      "test_focus": ["餐厅", "礼物", "消费"],
+      "player": {
+        "id": "player_c",
+        "display_name": "唐棠",
+        "role": "player",
+        "age": 23,
+        "work_status": "上班",
+        "personality": {
+          "security_need": "medium",
+          "emotional_stability": "medium",
+          "communication_initiative": "medium",
+          "trust_baseline": "medium",
+          "jealousy_tendency": "medium",
+          "avoidance_tendency": "low",
+          "honesty_tendency": "medium",
+          "double_standard_tendency": "medium",
+          "test_tendency": "medium",
+          "social_openness": "medium"
+        }
+      },
+      "npc": {
+        "id": "npc_c",
+        "display_name": "陈予",
+        "role": "npc",
+        "age": 25,
+        "work_status": "求职",
+        "personality": {
+          "security_need": "medium",
+          "emotional_stability": "medium",
+          "communication_initiative": "low",
+          "trust_baseline": "medium",
+          "jealousy_tendency": "low",
+          "avoidance_tendency": "medium",
+          "honesty_tendency": "high",
+          "double_standard_tendency": "low",
+          "test_tendency": "low",
+          "social_openness": "low"
+        }
+      }
+    },
+    "D": {
+      "id": "D",
+      "title": "组合D：高生理吸引 × 低心理稳定",
+      "test_focus": ["强吸引", "低信任", "分分合合"],
+      "player": {
+        "id": "player_d",
+        "display_name": "顾南",
+        "role": "player",
+        "age": 26,
+        "work_status": "上班",
+        "personality": {
+          "security_need": "high",
+          "emotional_stability": "low",
+          "communication_initiative": "medium",
+          "trust_baseline": "low",
+          "jealousy_tendency": "high",
+          "avoidance_tendency": "medium",
+          "honesty_tendency": "medium",
+          "double_standard_tendency": "medium",
+          "test_tendency": "high",
+          "social_openness": "medium"
+        }
+      },
+      "npc": {
+        "id": "npc_d",
+        "display_name": "夏宁",
+        "role": "npc",
+        "age": 24,
+        "work_status": "自由职业",
+        "personality": {
+          "security_need": "high",
+          "emotional_stability": "low",
+          "communication_initiative": "low",
+          "trust_baseline": "low",
+          "jealousy_tendency": "medium",
+          "avoidance_tendency": "high",
+          "honesty_tendency": "low",
+          "double_standard_tendency": "medium",
+          "test_tendency": "high",
+          "social_openness": "high"
+        }
+      }
+    },
+    "E": {
+      "id": "E",
+      "title": "组合E：成熟沟通型 × 情绪试探型",
+      "test_focus": ["复盘", "试探", "有效修复"],
+      "player": {
+        "id": "player_e",
+        "display_name": "程澈",
+        "role": "player",
+        "age": 27,
+        "work_status": "上班",
+        "personality": {
+          "security_need": "medium",
+          "emotional_stability": "high",
+          "communication_initiative": "high",
+          "trust_baseline": "medium",
+          "jealousy_tendency": "low",
+          "avoidance_tendency": "low",
+          "honesty_tendency": "high",
+          "double_standard_tendency": "low",
+          "test_tendency": "low",
+          "social_openness": "medium"
+        }
+      },
+      "npc": {
+        "id": "npc_e",
+        "display_name": "陆晚",
+        "role": "npc",
+        "age": 25,
+        "work_status": "上班",
+        "personality": {
+          "security_need": "high",
+          "emotional_stability": "medium",
+          "communication_initiative": "medium",
+          "trust_baseline": "medium",
+          "jealousy_tendency": "medium",
+          "avoidance_tendency": "medium",
+          "honesty_tendency": "medium",
+          "double_standard_tendency": "low",
+          "test_tendency": "high",
+          "social_openness": "medium"
+        }
+      }
+    }
+  }
+}
