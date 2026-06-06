@@ -432,10 +432,17 @@ lie_record:
 
 ## 16. 下一步人工任务
 
-在 Codex 额度不足或不写代码的情况下，可以继续做以下内容：
+截至本轮审查，以下文档已经完成：
 
-1. 写 `docs/design/17_question_type_schema.md`：题型数据结构；
-2. 写 `docs/design/18_super_realistic_question_bank.md`：超级真实版题库；
-3. 写 `docs/design/19_relationship_report_templates.md`：问卷报告模板；
-4. 写 `docs/design/20_npc_profile_layers.md`：NPC四层档案样例；
-5. 写 `docs/design/21_lie_evidence_memory_system.md`：谎言、证据和记忆系统。
+- `docs/design/17_question_type_schema.md`：题型数据结构；
+- `docs/design/18_super_realistic_question_bank.md` 及 part2/part3/part4：Q001-Q150 超级真实版题库；
+- `docs/design/19_relationship_report_templates.md`：问卷报告模板；
+- `docs/design/22_questionnaire_scoring_rules.md`：问卷计分与可信度规则。
+
+在 Codex 额度不足或暂不写代码的情况下，下一步建议继续做：
+
+1. 写 `docs/design/23_questionnaire_dimension_coverage.md`：Q001-Q150 对 128维的覆盖率检查；
+2. 写 `docs/design/24_questionnaire_json_schema.md`：题库 JSON 配置草案；
+3. 写 `docs/design/20_npc_profile_layers.md`：NPC四层档案样例；
+4. 写 `docs/design/21_lie_evidence_memory_system.md`：谎言、证据和记忆系统；
+5. 根据覆盖率检查结果决定是否补充 Q151-Q180，不建议继续盲目加题。
