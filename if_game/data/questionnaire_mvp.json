@@ -1,0 +1,386 @@
+{
+  "questionnaire_meta": {
+    "id": "if_questionnaire_mvp",
+    "version": "0.1",
+    "title": "IF 问卷 MVP 配置",
+    "source_docs": [
+      "docs/design/18_super_realistic_question_bank.md",
+      "docs/design/24_questionnaire_json_schema.md"
+    ],
+    "default_mode": "mvp",
+    "supported_modes": ["mvp"],
+    "score_range": [0, 100],
+    "default_dimension_score": 50
+  },
+  "modules": [
+    {
+      "id": "relationship_context",
+      "title": "关系上下文",
+      "order": 1,
+      "description": "记录关系阶段和当前联系频率。",
+      "modes": ["mvp"],
+      "target_question_ids": ["Q001", "Q004"],
+      "report_section_id": "relationship_context",
+      "primary_dimensions": [
+        "attachment_commitment_pace",
+        "values_belonging_need",
+        "digital_response_norm",
+        "attachment_closeness_need",
+        "social_dependency"
+      ]
+    },
+    {
+      "id": "intimacy_attachment",
+      "title": "依恋与亲密",
+      "order": 2,
+      "description": "覆盖被弃焦虑、回避亲密、亲密需求、独立需求、脆弱暴露、依赖舒适和冲突修复。",
+      "modes": ["mvp"],
+      "target_question_ids": ["Q017", "Q018", "Q019", "Q020", "Q021", "Q023", "Q026", "Q030"],
+      "report_section_id": "intimacy_attachment",
+      "primary_dimensions": [
+        "attachment_abandonment_anxiety",
+        "attachment_intimacy_avoidance",
+        "attachment_closeness_need",
+        "attachment_independence_need",
+        "attachment_vulnerability_fear",
+        "attachment_reliance_comfort",
+        "attachment_repair_receptivity"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q001",
+      "module": "relationship_context",
+      "module_id": "relationship_context",
+      "title": "关系入口",
+      "prompt": "你们当前的关系更接近哪一种？",
+      "question_type": "forced_single",
+      "selection_mode": "forced_single",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["mvp"],
+      "dimensions": ["attachment_commitment_pace", "values_belonging_need"],
+      "options": [
+        {"id": "plain_chat", "value": "A", "label": "刚认识，还在普通聊天。"},
+        {"id": "early_ambiguous", "value": "B", "label": "已经频繁聊天，有一点暧昧。"},
+        {"id": "strong_ambiguous", "value": "C", "label": "暧昧明显，但还没有正式确认关系。"},
+        {"id": "new_relationship", "value": "D", "label": "刚确认恋爱关系。"},
+        {"id": "post_breakup_reconnect", "value": "E", "label": "已经分手，但最近又开始联系。"}
+      ],
+      "scoring": {
+        "base_weight": 1.0,
+        "evidence_quality": "context",
+        "dimension_effects": {
+          "plain_chat": {"attachment_commitment_pace": -8, "values_belonging_need": -2},
+          "early_ambiguous": {"attachment_commitment_pace": -4, "values_belonging_need": 2},
+          "strong_ambiguous": {"attachment_commitment_pace": 2, "values_belonging_need": 4},
+          "new_relationship": {"attachment_commitment_pace": 6, "values_belonging_need": 6},
+          "post_breakup_reconnect": {"attachment_commitment_pace": 2, "values_belonging_need": 5}
+        }
+      },
+      "confidence": {"enabled": true, "default": 80, "affects_weight": true},
+      "report_tags": ["relationship_entry_context"]
+    },
+    {
+      "id": "Q004",
+      "module": "relationship_context",
+      "module_id": "relationship_context",
+      "title": "联系频率",
+      "prompt": "你们现在通常多久联系一次？",
+      "question_type": "forced_single",
+      "selection_mode": "forced_single",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["mvp"],
+      "dimensions": ["digital_response_norm", "attachment_closeness_need", "social_dependency"],
+      "options": [
+        {"id": "all_day_messages", "value": "A", "label": "几乎全天都有消息。"},
+        {"id": "daily_messages", "value": "B", "label": "每天都会聊，但不是一直聊。"},
+        {"id": "every_few_days", "value": "C", "label": "一两天聊一次。"},
+        {"id": "irregular_contact", "value": "D", "label": "想起来才聊，不固定。"},
+        {"id": "recently_less", "value": "E", "label": "最近明显变少。"}
+      ],
+      "scoring": {
+        "base_weight": 1.0,
+        "evidence_quality": "context",
+        "dimension_effects": {
+          "all_day_messages": {"digital_response_norm": 8, "attachment_closeness_need": 8, "social_dependency": 6},
+          "daily_messages": {"digital_response_norm": 5, "attachment_closeness_need": 5, "social_dependency": 3},
+          "every_few_days": {"digital_response_norm": -2, "attachment_closeness_need": -2, "social_dependency": -2},
+          "irregular_contact": {"digital_response_norm": -6, "attachment_closeness_need": -5, "social_dependency": -4},
+          "recently_less": {"digital_response_norm": -4, "attachment_closeness_need": -4, "social_dependency": -2}
+        }
+      },
+      "confidence": {"enabled": true, "default": 80, "affects_weight": true},
+      "report_tags": ["current_contact_frequency"]
+    },
+    {
+      "id": "Q017",
+      "module": "intimacy_attachment",
+      "module_id": "intimacy_attachment",
+      "title": "对方长时间不回消息",
+      "prompt": "你发了重要消息，对方几个小时没回，也没有提前说忙。你第一反应更接近哪种？",
+      "question_type": "primary_with_secondary",
+      "selection_mode": "primary_with_secondary",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["mvp"],
+      "dimensions": ["attachment_abandonment_anxiety", "trust_checking_impulse", "emotion_reassurance_need"],
+      "options": [
+        {"id": "assume_busy", "value": "A", "label": "先默认对方在忙。"},
+        {"id": "quiet_discomfort", "value": "B", "label": "有点不舒服，但先忍住。"},
+        {"id": "ask_why", "value": "C", "label": "想追问为什么不回。"},
+        {"id": "become_cold", "value": "D", "label": "表面不问，但自己开始冷淡。"},
+        {"id": "check_clues", "value": "E", "label": "想去看朋友圈、共同好友或其他线索。"}
+      ],
+      "scoring": {
+        "base_weight": 1.0,
+        "evidence_quality": "high",
+        "dimension_effects": {
+          "assume_busy": {"attachment_abandonment_anxiety": -6, "trust_checking_impulse": -6, "emotion_reassurance_need": -4},
+          "quiet_discomfort": {"attachment_abandonment_anxiety": 5, "trust_checking_impulse": 0, "emotion_reassurance_need": 4},
+          "ask_why": {"attachment_abandonment_anxiety": 7, "trust_checking_impulse": 3, "emotion_reassurance_need": 8},
+          "become_cold": {"attachment_abandonment_anxiety": 6, "trust_checking_impulse": 1, "emotion_reassurance_need": 5},
+          "check_clues": {"attachment_abandonment_anxiety": 8, "trust_checking_impulse": 9, "emotion_reassurance_need": 6}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["message_delay_sensitivity"]
+    },
+    {
+      "id": "Q018",
+      "module": "intimacy_attachment",
+      "module_id": "intimacy_attachment",
+      "title": "关系变亲近后的反应",
+      "prompt": "当关系变得越来越亲近时，你更接近哪个位置？",
+      "question_type": "axis_2d",
+      "selection_mode": "axis_2d",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["mvp"],
+      "dimensions": [
+        "attachment_abandonment_anxiety",
+        "attachment_intimacy_avoidance",
+        "attachment_closeness_need",
+        "attachment_independence_need"
+      ],
+      "axis": {
+        "x": {"min": 0, "max": 100, "left_label": "更安心", "right_label": "更担心失去"},
+        "y": {"min": 0, "max": 100, "left_label": "更愿意靠近", "right_label": "更想保持距离"}
+      },
+      "scoring": {
+        "base_weight": 0.9,
+        "evidence_quality": "high",
+        "dimension_effects": {
+          "axis_x": {"attachment_abandonment_anxiety": 10, "attachment_closeness_need": 3},
+          "axis_y": {"attachment_intimacy_avoidance": 10, "attachment_independence_need": 8, "attachment_closeness_need": -5}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["attachment_core_axis"]
+    },
+    {
+      "id": "Q019",
+      "module": "intimacy_attachment",
+      "module_id": "intimacy_attachment",
+      "title": "每天联系需求",
+      "prompt": "在一段稳定关系里，你对每天联系的需求有多强？",
+      "question_type": "slider",
+      "selection_mode": "slider",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["mvp"],
+      "dimensions": ["attachment_closeness_need", "digital_response_norm", "social_dependency"],
+      "scale": {"min": 0, "max": 100, "min_label": "不需要每天联系", "max_label": "希望每天频繁联系"},
+      "scoring": {
+        "base_weight": 0.75,
+        "evidence_quality": "medium",
+        "dimension_effects": {
+          "slider": {"attachment_closeness_need": 10, "digital_response_norm": 8, "social_dependency": 7}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["daily_contact_need"]
+    },
+    {
+      "id": "Q020",
+      "module": "intimacy_attachment",
+      "module_id": "intimacy_attachment",
+      "title": "个人空间需求",
+      "prompt": "即使很喜欢对方，你对个人空间和独处时间的需求有多强？",
+      "question_type": "slider",
+      "selection_mode": "slider",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["mvp"],
+      "dimensions": ["attachment_independence_need", "values_freedom_need", "boundary_autonomy_assertion"],
+      "scale": {"min": 0, "max": 100, "min_label": "几乎希望生活高度融合", "max_label": "很需要私人空间"},
+      "scoring": {
+        "base_weight": 0.75,
+        "evidence_quality": "medium",
+        "dimension_effects": {
+          "slider": {"attachment_independence_need": 10, "values_freedom_need": 8, "boundary_autonomy_assertion": 6}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["personal_space_need"]
+    },
+    {
+      "id": "Q021",
+      "module": "intimacy_attachment",
+      "module_id": "intimacy_attachment",
+      "title": "暴露脆弱",
+      "prompt": "当你很不安、很难过或很需要对方时，你更可能怎么做？",
+      "question_type": "primary_with_secondary",
+      "selection_mode": "primary_with_secondary",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["mvp"],
+      "dimensions": [
+        "attachment_vulnerability_fear",
+        "communication_directness",
+        "emotion_reassurance_need",
+        "desire_emotional_validation_hunger"
+      ],
+      "options": [
+        {"id": "tell_directly", "value": "A", "label": "直接告诉对方自己的感受。"},
+        {"id": "hint_need", "value": "B", "label": "暗示一下，希望对方察觉。"},
+        {"id": "pretend_ok", "value": "C", "label": "假装没事，不想显得脆弱。"},
+        {"id": "become_cold", "value": "D", "label": "变冷淡，等对方主动来问。"},
+        {"id": "tell_others", "value": "E", "label": "找别人倾诉，不告诉对方。"}
+      ],
+      "scoring": {
+        "base_weight": 1.0,
+        "evidence_quality": "high",
+        "dimension_effects": {
+          "tell_directly": {"attachment_vulnerability_fear": -8, "communication_directness": 8, "emotion_reassurance_need": 3, "desire_emotional_validation_hunger": -2},
+          "hint_need": {"attachment_vulnerability_fear": 3, "communication_directness": -3, "emotion_reassurance_need": 6, "desire_emotional_validation_hunger": 2},
+          "pretend_ok": {"attachment_vulnerability_fear": 8, "communication_directness": -6, "emotion_reassurance_need": 3, "desire_emotional_validation_hunger": 0},
+          "become_cold": {"attachment_vulnerability_fear": 7, "communication_directness": -7, "emotion_reassurance_need": 6, "desire_emotional_validation_hunger": 3},
+          "tell_others": {"attachment_vulnerability_fear": 6, "communication_directness": -4, "emotion_reassurance_need": 3, "desire_emotional_validation_hunger": 7}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["vulnerability_expression_pattern"]
+    },
+    {
+      "id": "Q023",
+      "module": "intimacy_attachment",
+      "module_id": "intimacy_attachment",
+      "title": "依赖别人",
+      "prompt": "当你遇到现实困难时，你对向伴侣求助的态度更接近哪种？",
+      "question_type": "forced_single",
+      "selection_mode": "forced_single",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["mvp"],
+      "dimensions": ["attachment_reliance_comfort", "attachment_vulnerability_fear", "self_face_sensitivity"],
+      "options": [
+        {"id": "natural_reliance", "value": "A", "label": "很自然，亲密关系本来可以互相依靠。"},
+        {"id": "careful_reliance", "value": "B", "label": "会求助，但不想太麻烦对方。"},
+        {"id": "only_when_overwhelmed", "value": "C", "label": "只有撑不住时才会说。"},
+        {"id": "avoid_help", "value": "D", "label": "不太喜欢求助，怕欠人情或被看低。"},
+        {"id": "hope_partner_notices", "value": "E", "label": "表面说不需要，但心里希望对方主动发现。"}
+      ],
+      "scoring": {
+        "base_weight": 1.0,
+        "evidence_quality": "medium",
+        "dimension_effects": {
+          "natural_reliance": {"attachment_reliance_comfort": 8, "attachment_vulnerability_fear": -6, "self_face_sensitivity": -3},
+          "careful_reliance": {"attachment_reliance_comfort": 4, "attachment_vulnerability_fear": 1, "self_face_sensitivity": 2},
+          "only_when_overwhelmed": {"attachment_reliance_comfort": -1, "attachment_vulnerability_fear": 5, "self_face_sensitivity": 4},
+          "avoid_help": {"attachment_reliance_comfort": -7, "attachment_vulnerability_fear": 7, "self_face_sensitivity": 7},
+          "hope_partner_notices": {"attachment_reliance_comfort": -2, "attachment_vulnerability_fear": 6, "self_face_sensitivity": 5}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["reliance_comfort_pattern"]
+    },
+    {
+      "id": "Q026",
+      "module": "intimacy_attachment",
+      "module_id": "intimacy_attachment",
+      "title": "冲突后靠近",
+      "prompt": "吵架后，如果对方主动解释并修复，你有多容易重新靠近？",
+      "question_type": "slider",
+      "selection_mode": "slider",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["mvp"],
+      "dimensions": ["attachment_repair_receptivity", "trust_explanation_acceptance", "emotion_recovery_speed"],
+      "scale": {"min": 0, "max": 100, "min_label": "很难靠近", "max_label": "如果态度真诚，可以较快靠近"},
+      "scoring": {
+        "base_weight": 0.75,
+        "evidence_quality": "medium",
+        "dimension_effects": {
+          "slider": {"attachment_repair_receptivity": 10, "trust_explanation_acceptance": 8, "emotion_recovery_speed": 7}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["repair_receptivity"]
+    },
+    {
+      "id": "Q030",
+      "module": "intimacy_attachment",
+      "module_id": "intimacy_attachment",
+      "title": "依恋自我描述",
+      "prompt": "以下描述中，哪些比较像你在亲密关系里的状态？可以多选，并标出最像的一项。",
+      "question_type": "multi_with_primary",
+      "selection_mode": "multi_with_primary",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["mvp"],
+      "dimensions": [
+        "attachment_abandonment_anxiety",
+        "attachment_intimacy_avoidance",
+        "attachment_closeness_need",
+        "attachment_independence_need",
+        "self_discrepancy_awareness"
+      ],
+      "options": [
+        {"id": "needs_stable_response", "value": "A", "label": "我需要稳定回应，不然容易不安。"},
+        {"id": "fears_dependence", "value": "B", "label": "我喜欢亲密，但也怕自己太依赖。"},
+        {"id": "needs_space", "value": "C", "label": "我需要很多个人空间。"},
+        {"id": "hides_needs", "value": "D", "label": "我不太会表达需要，容易装没事。"},
+        {"id": "needs_repair", "value": "E", "label": "我吵架后需要对方主动修复。"},
+        {"id": "usually_stable", "value": "F", "label": "我通常比较稳定，不太会被小事影响。"},
+        {"id": "push_pull", "value": "G", "label": "我会在亲密和退缩之间摇摆。"}
+      ],
+      "scoring": {
+        "base_weight": 0.85,
+        "evidence_quality": "self_report",
+        "dimension_effects": {
+          "needs_stable_response": {"attachment_abandonment_anxiety": 8, "attachment_closeness_need": 4, "self_discrepancy_awareness": 1},
+          "fears_dependence": {"attachment_intimacy_avoidance": 4, "attachment_closeness_need": 5, "self_discrepancy_awareness": 1},
+          "needs_space": {"attachment_independence_need": 8, "attachment_intimacy_avoidance": 4, "self_discrepancy_awareness": 1},
+          "hides_needs": {"attachment_intimacy_avoidance": 5, "attachment_abandonment_anxiety": 3, "self_discrepancy_awareness": 2},
+          "needs_repair": {"attachment_abandonment_anxiety": 5, "attachment_closeness_need": 4, "self_discrepancy_awareness": 1},
+          "usually_stable": {"attachment_abandonment_anxiety": -6, "attachment_intimacy_avoidance": -3, "self_discrepancy_awareness": 1},
+          "push_pull": {"attachment_abandonment_anxiety": 5, "attachment_intimacy_avoidance": 6, "self_discrepancy_awareness": 3}
+        }
+      },
+      "confidence": {"enabled": true, "default": 65, "affects_weight": true},
+      "report_tags": ["attachment_self_summary"]
+    }
+  ],
+  "scoring": {
+    "selection_mode_weights": {
+      "forced_single": 1.0,
+      "primary_with_secondary": 1.0,
+      "multi_select": 0.65,
+      "multi_with_primary": 0.85,
+      "ranked_multi": 0.8,
+      "weighted_multi": 1.0,
+      "slider": 0.75,
+      "axis_2d": 0.9,
+      "scenario_choice": 1.0,
+      "npc_perspective": 0.75,
+      "reverse_check": 0.65,
+      "open_text": 0.0
+    },
+    "primary_choice_weight": 1.0,
+    "secondary_choice_weight": 0.3,
+    "reason_tag_weight": 0.35
+  }
+}
