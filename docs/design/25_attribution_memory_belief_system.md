@@ -176,9 +176,360 @@ trust layers / satisfaction / conflict / repair
 - 它们可以由已有维度推导，例如 `trust_old_wound_memory`、`self_justification_tendency`、`boundary_double_standard`；
 - 后续也可以通过 Q151-Q180 新题直接测量。
 
-## 4. 字段草案
+## 4. 真实原因层与解释可信度系统
 
-### 4.1 顶层结构
+归因系统不能只模拟“玩家或 NPC 如何误解对方”。IF 还必须模拟：对方行为背后是否真的存在忽视、隐瞒、暧昧、背叛、操控或优先级下降。
+
+核心原则：
+
+1. 解释偏差不等于事实不存在。玩家怀疑可能来自焦虑，也可能是准确捕捉到了异常线索。
+2. 怀疑不一定错误，信任也不一定正确。高信任可能带来稳定，也可能让角色低估真实风险。
+3. 同一个可疑行为可能是误会，也可能是真实失信。系统必须同时保存事实、解释和证据，而不是只保存情绪反应。
+4. “忙”不是万能解释。忙可以解释回复延迟，但不能自动解释社交媒体更新、在线互动、选择性回复、反复说法变化或删除记录。
+5. 行为解释必须和可见线索进行逻辑校验。解释越模糊、线索越冲突、借口越重复，解释可信度越低。
+6. 不要把玩家怀疑直接写成“焦虑”，也不要把对方异常行为全部心理学化洗白。
+7. 不要把一次异常直接判定为出轨。应结合可见线索、解释一致性、旧记录、重复模式和后续补救。
+
+真正真实的系统应接近：
+
+```text
+真实原因 × 可见线索 × 解释可信度 × 过去记忆 × 关系信念 × 证据链 × 后续补救
+= 关系后果
+```
+
+### 4.1 五层结构
+
+IF 事件至少应区分五层：
+
+| 层级 | 英文字段 | 含义 | 例子 |
+| --- | --- | --- | --- |
+| 事实层 | `truth layer` | 系统内部知道的真实原因和真实发生事项 | 确实在开会 / 正在和暧昧对象聊天 |
+| 意图层 | `intention layer` | 行为背后的动机和主观意图 | 忘记回复 / 故意冷处理 / 想保留解释空间 |
+| 可见行为层 | `observable behavior` | 玩家或 NPC 能看到的外部线索 | 在线、点赞、朋友圈更新、删除记录 |
+| 解释层 | `interpretation layer` | 当事人给出的说法和对方的理解 | “没看手机” / “你就是不在乎” |
+| 证据层 | `evidence layer` | 支持或反驳解释的证据链 | 共同好友、付款记录、位置、截图、通话记录 |
+
+同一事件必须允许以下组合同时存在：
+
+```text
+truth_type: concealment
+observable_behavior:
+  social_media_updated_but_no_reply: true
+explanation_claim: "没看手机"
+interpretation_layer: "对方可能在敷衍"
+evidence_chain_strength: medium
+```
+
+这意味着系统既能模拟误会，也能模拟真实失信。
+
+### 4.2 真实原因层字段
+
+| 字段 | 类型 | 含义 | 示例 |
+| --- | --- | --- | --- |
+| `truth_type` | enum | 行为真实类型 | `busy`、`neglect`、`avoidance`、`concealment`、`betrayal`、`manipulation` |
+| `truth_reason` | string/enum | 真实原因的具体说明 | 工作会议、情绪过载、怕冲突、和前任联系 |
+| `truth_intention` | enum | 主观意图 | 无意延迟、回避沟通、保留秘密、试探对方、操控情绪 |
+| `truth_harm_level` | 0-100/level | 真实行为造成关系伤害的程度 | 低：临时忙；高：持续欺骗 |
+| `truth_priority_signal` | 0-100/level | 该行为是否体现优先级下降 | 在线但只不回伴侣时升高 |
+| `truth_moral_severity` | 0-100/level | 道德严重度 | 普通疏忽低，隐瞒暧昧高，背叛最高 |
+
+`truth_type` 建议起步枚举：
+
+| `truth_type` | 含义 | 常见事件 |
+| --- | --- | --- |
+| `busy` | 真实外部事务占用 | 工作、家庭、突发事项 |
+| `neglect` | 没有恶意但确实低优先级 | 看到了但觉得晚点回也无所谓 |
+| `avoidance` | 为避开压力、冲突或亲密而退开 | 冷处理、拖延解释 |
+| `concealment` | 有意识保留关键信息 | 异性饭局不说、神秘电话模糊 |
+| `betrayal` | 真实越过忠诚或边界 | 暧昧、前任复联、关系替代 |
+| `manipulation` | 有策略地制造不安或控制 | 故意不回、冷淡惩罚、测试对方 |
+
+### 4.3 解释层字段
+
+| 字段 | 类型 | 含义 | 高风险表现 |
+| --- | --- | --- | --- |
+| `explanation_claim` | string/enum | 对方给出的说法 | “没看手机”“妈妈打电话”“普通同事” |
+| `explanation_specificity` | 0-100 | 解释是否具体 | 时间、地点、对象、原因都模糊时低 |
+| `explanation_consistency` | 0-100 | 前后说法是否一致 | 一会儿说工作，一会儿说家人时下降 |
+| `explanation_plausibility` | 0-100 | 解释本身是否符合上下文常识 | 半夜 3 点“妈妈打电话”基础可信度较低 |
+| `behavior_explanation_gap` | 0-100 | 可见行为和解释之间的差距 | 说没看手机，但有点赞、在线、群聊发言 |
+| `excuse_repetition_count` | integer | 同类借口重复次数 | 每次都说忙、家人、手机没电 |
+
+解释可信度建议：
+
+```text
+explanation_credibility =
+  explanation_specificity
+  + explanation_consistency
+  + explanation_plausibility
+  + supporting_evidence
+  - behavior_explanation_gap
+  - excuse_repetition_penalty
+```
+
+如果对方声称“没看手机”，但同时出现社交媒体更新、在线、点赞、群聊发言，则 `behavior_explanation_gap` 上升，`explanation_plausibility` 和整体解释可信度下降。
+
+如果半夜 3 点声称“妈妈打电话”，不能写死绝不可能。特殊背景可以提高可信度，例如母亲生病、跨时区、家庭突发事件、能提供一致细节。但在没有背景、细节模糊、反复出现或删除记录时，基础 `explanation_plausibility` 应较低。
+
+反复出现同类借口时：
+
+```text
+excuse_repetition_count += 1
+behavior_explanation_gap += repeated_excuse_delta
+trust_old_wound_memory += repeated_pattern_delta
+```
+
+### 4.4 可见线索字段
+
+| 字段 | 含义 | 对解释可信度的影响 |
+| --- | --- | --- |
+| `online_but_no_reply` | 在线但未回复 | 不直接判定失信，但提高选择性可用可能 |
+| `social_media_updated_but_no_reply` | 更新社媒但未回复 | “没看手机”可信度下降 |
+| `message_seen_but_ignored` | 已读但不回 | 优先级下降、回避或操控可能上升 |
+| `selective_availability` | 对别人可用，对伴侣不可用 | `truth_priority_signal` 上升 |
+| `late_night_implausible_call` | 深夜异常电话 | 需要背景和证据支持 |
+| `explanation_timing_conflict` | 解释时间线冲突 | 事实信任下降 |
+| `deleted_chat_trace` | 删除聊天痕迹 | 证据链增强，解释可信度下降 |
+| `third_party_witness` | 第三方目击或传话 | 证据强度上升 |
+| `payment_or_location_trace` | 付款、定位、照片等轨迹 | 可直接校验事实层 |
+
+可见线索不等于最终事实，但必须参与逻辑校验。系统不能在有明显冲突线索时仍把“忙”作为默认洗白解释。
+
+### 4.5 证据与校准字段
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `evidence_chain_strength` | 0-100/level | 当前证据链强度 |
+| `exposure_risk` | 0-100/level | 真相未来暴露概率 |
+| `interpretation_accuracy` | enum/score | 本次判断和事实是否匹配 |
+| `trust_calibration` | 0-100/level | 信任和怀疑是否校准到事实 |
+| `suspicion_accuracy_history` | list/score | 过去怀疑命中的历史 |
+| `misplaced_trust_history` | list/score | 过去相信但后来发现有问题的历史 |
+| `accurate_alertness_tag` | bool/tag | 准确警觉标签 |
+| `over_suspicion_tag` | bool/tag | 过度怀疑标签 |
+| `selective_blindness_tag` | bool/tag | 选择性失明标签 |
+
+### 4.6 判断 × 事实四象限
+
+| 判断 | 事实 | 类型 | 游戏后果 |
+| --- | --- | --- | --- |
+| 怀疑有问题 | 真的有问题 | 准确警觉 | 可以触发证据链和事实揭露 |
+| 怀疑有问题 | 实际没问题 | 误会/焦虑 | 损害隐私信任和情绪安全 |
+| 相信没问题 | 实际没问题 | 稳定信任 | 关系稳定或轻微波动 |
+| 相信没问题 | 真的有问题 | 被欺骗/低估风险 | 后续揭穿时伤害更大 |
+
+该表用于避免两个错误：
+
+- 把所有怀疑都写成焦虑；
+- 把所有信任都写成成熟。
+
+成熟的关系系统应该能识别“准确警觉”和“低估风险”。
+
+### 4.7 对关系系统的影响
+
+| 影响对象 | 作用规则 |
+| --- | --- |
+| `fact_trust` / 事实信任 | 解释不一致、证据冲突、删除记录、半真半假会降低事实信任 |
+| `loyalty_trust` / 忠诚信任 | 异性饭局、前任、暧昧对象、选择性隐瞒会影响忠诚信任 |
+| `emotional_trust` / 情感信任 | 忽视、低优先级、故意冷处理会影响“对方是否在乎我” |
+| `priority_feeling` / 被重视感 | 在线不回、已读不回、对别人可用会降低被重视感 |
+| `old_wound_memory` / 旧伤记忆 | 重复借口、同类失信、后续揭穿会写入长期伤口 |
+| `relationship_satisfaction` / 关系满意度 | 真实伤害、解释可信度和归因模式共同决定满意度变化 |
+| `conflict_escalation` / 冲突升级 | 证据冲突、解释变化、旧伤激活会提高升级风险 |
+| `repair_chance` / 修复机会 | 真实伤害低、解释一致、补偿具体、后续行为稳定时提高 |
+| `lie_evidence_chain` / 谎言证据链 | 删除记录、第三方目击、付款定位、说法冲突会增强证据链 |
+| `report_tags` / 报告标签 | 由多次判断校准生成，不由单次怀疑生成 |
+| `npc_reaction` / NPC反应 | NPC 也会根据事实层、解释层和证据层决定是否相信玩家 |
+
+### 4.8 现实事件例子
+
+#### 4.8.1 晚回消息
+
+同样是“4 小时没回”，不同 `truth_type` 的关系含义完全不同。
+
+| `truth_type` | 真实原因 | 关系影响 |
+| --- | --- | --- |
+| `busy` | 真实工作、家庭或突发事务 | 若后续说明具体，信任小幅波动；若长期不提前说明，仍会降低被重视感 |
+| `neglect` | 看到了但觉得不急，伴侣优先级较低 | `priority_feeling` 和 `emotional_trust` 下降 |
+| `avoidance` | 不想面对冲突或亲密压力 | 冲突未解决、行动信任下降，旧伤可能激活 |
+| `concealment` | 正在做不想说明的事 | 事实信任下降，证据链开始形成 |
+| `betrayal` | 与前任、暧昧对象或替代关系有关 | 忠诚信任明显下降，揭穿后伤害高 |
+| `manipulation` | 故意不回以制造不安或惩罚 | 情感信任和安全感下降，操控标签上升 |
+
+系统不能只问“玩家是否焦虑”，还要判断真实原因和可见线索是否支持该焦虑。
+
+#### 4.8.2 社交媒体更新但不回消息
+
+事实：
+
+```text
+observable_behavior:
+  social_media_updated_but_no_reply: true
+  online_but_no_reply: true
+explanation_claim: "没看手机"
+```
+
+处理：
+
+- 不直接判定出轨；
+- 但“没看手机”的解释可信度下降；
+- `selective_availability` 上升；
+- `truth_priority_signal` 上升；
+- 如果反复出现，则 `excuse_repetition_count` 和 `behavior_explanation_gap` 增加；
+- 对关系的主要影响是 `priority_feeling`、`emotional_trust` 和 `fact_trust`。
+
+报告不应写“你太焦虑”，而应写：
+
+```text
+你对“对方明明在线却不回应”的优先级信号比较敏感。这个敏感不一定错误，系统会结合后续解释一致性和重复模式继续校准。
+```
+
+#### 4.8.3 半夜异常电话
+
+事实：
+
+```text
+observable_behavior:
+  late_night_implausible_call: true
+time: 03:00
+explanation_claim: "妈妈打电话"
+```
+
+处理原则：
+
+- 不能绝对判假。家庭急事、跨时区、疾病、突发事故都可能成立；
+- 基础 `explanation_plausibility` 较低，因为时间和常见生活规律冲突；
+- 如果有特殊背景、细节一致、后续可验证，可信度上升；
+- 如果无细节、反复出现、解释变化、删除记录，`evidence_chain_strength` 上升；
+- 若第三方证据或通话记录支持解释，则怀疑可能转为误会。
+
+#### 4.8.4 异性饭局
+
+两种分支：
+
+| 情况 | 事实信任 | 忠诚信任 | 修复机会 |
+| --- | --- | --- | --- |
+| 提前说明、边界清楚、事后解释一致 | 基本稳定 | 基本稳定或轻微波动 | 高 |
+| 临时隐瞒、说法模糊、被共同好友撞见 | 明显下降 | 视饭局对象和上下文下降 | 取决于是否承认省略重点 |
+
+关键不是“异性饭局一定有问题”，而是：
+
+- 是否提前说明；
+- 是否一对一；
+- 是否有暧昧历史；
+- 是否省略关键事实；
+- 是否被第三方撞见后才补充；
+- 后续边界协议是否清楚。
+
+#### 4.8.5 神秘电话
+
+| `truth_type` | 真实情况 | 解释可信度处理 |
+| --- | --- | --- |
+| `busy` / family_emergency | 真实家人急事 | 需要细节一致和背景支持；支持后可恢复事实信任 |
+| `busy` / work_call | 普通工作电话 | 若职业/时间合理，可信度中高 |
+| `concealment` | 前任或暧昧对象来电但不想说 | 事实信任下降，证据链增强 |
+| `betrayal` | 与越界关系有关 | 忠诚信任下降，后续揭穿伤害高 |
+| `manipulation` / fabricated_excuse | 临时编造借口转移视线 | 解释一致性低，事实信任快速下降 |
+
+系统应允许“神秘电话只是普通电话”，也应允许它是真实隐瞒入口。
+
+#### 4.8.6 主动道歉和补偿
+
+| 类型 | 识别依据 | 系统影响 |
+| --- | --- | --- |
+| 真诚修复 | 承认具体事实，解释一致，有后续行动 | `repair_chance` 上升，旧伤修复进度增加 |
+| 心虚补偿 | 补偿强但解释含糊，回避关键事实 | 短期满意度上升，事实信任仍不稳定 |
+| 表演式道歉 | 话术漂亮但不承担具体责任 | 修复机会有限，重复后伤害更大 |
+| 只想快速翻篇 | 催促对方别再提，缺少补救 | 冲突未解决，旧伤记忆上升 |
+
+判断道歉不能只看“是否道歉”，要结合：
+
+- `truth_harm_level`；
+- `explanation_consistency`；
+- `truth_moral_severity`；
+- 后续行为是否改变；
+- 是否继续使用同类借口。
+
+### 4.9 报告标签示例
+
+| 标签 | 含义 | 生成原则 |
+| --- | --- | --- |
+| `accurate_alertness` | 准确警觉型 | 多次怀疑与事实问题匹配 |
+| `over_suspicion` | 过度怀疑型 | 多次怀疑但事实无问题，并造成关系损耗 |
+| `misplaced_trust` | 低估风险型 | 多次相信无问题，但后续证据显示有问题 |
+| `selective_blindness` | 选择性失明型 | 可见线索明显冲突，但持续忽略 |
+| `evidence_sensitive` | 证据敏感型 | 会根据可见线索调整判断 |
+| `priority_neglect_sensitive` | 优先级忽视敏感型 | 对在线不回、已读不回、选择性可用敏感 |
+| `repeated_excuse_alert` | 重复借口警觉 | 对同类借口反复出现敏感 |
+| `plausible_explanation_acceptor` | 合理解释接受型 | 解释具体、一致、有证据时愿意缓和 |
+
+这些标签必须由多次事件或问卷 + 行为共同支持，不应由单次异常生成。
+
+### 4.10 问卷字段与隐藏系统字段
+
+适合加入 Q151-Q180 或后续补题的字段：
+
+| 字段 | 原因 |
+| --- | --- |
+| `trust_calibration` | 可通过情境题测试“该怀疑时是否怀疑，该信任时是否信任” |
+| `suspicion_accuracy_history` | 可通过自述过去经验和场景题测量 |
+| `evidence_sensitive` | 可测量玩家是否根据证据调整判断 |
+| `repeated_excuse_alert` | 可测量对重复借口的敏感度 |
+| `priority_neglect_sensitive` | 可测量对优先级下降线索的反应 |
+| `plausible_explanation_acceptor` | 可测量是否接受具体、一致、可验证解释 |
+
+只适合隐藏系统的字段：
+
+| 字段 | 原因 |
+| --- | --- |
+| `truth_type` | 玩家不应在问卷中知道事件真实答案 |
+| `truth_reason` | 属于系统内部事实 |
+| `truth_intention` | 属于 NPC 或事件真实动机 |
+| `truth_harm_level` | 需要由事件事实和后果计算 |
+| `evidence_chain_strength` | 来自动态线索，不适合静态自述 |
+| `interpretation_accuracy` | 必须对比判断和真实事实后才能计算 |
+| `exposure_risk` | 谎言和证据系统内部使用 |
+
+### 4.11 与谎言证据链的关系
+
+如果未来新增 `docs/design/21_lie_evidence_memory_system.md`，本文字段应与谎言证据链共享以下结构：
+
+```text
+lie_evidence_chain:
+  truth_type: concealment
+  explanation_claim: "普通同事电话"
+  omitted_parts:
+    - 前任
+    - 深夜
+  observable_traces:
+    - deleted_chat_trace
+    - late_night_implausible_call
+  evidence_chain_strength: medium_high
+  exposure_risk: high
+```
+
+谎言证据链负责“证据如何累积和暴露”，解释可信度系统负责“角色如何根据证据校准信任和怀疑”。
+
+### 4.12 报告表达边界补充
+
+报告应避免：
+
+```text
+你只是焦虑。
+对方只是忙。
+你一定被背叛了。
+你太多疑，所以才觉得对方异常。
+```
+
+报告应写：
+
+```text
+你对解释和可见行为不一致的情况比较敏感。这个敏感可能帮助你识别真实风险，也可能在证据不足时放大误会，系统会根据后续事实和证据链继续校准。
+```
+
+## 5. 字段草案
+
+### 5.1 顶层结构
 
 ```text
 attribution_memory_belief_state:
@@ -195,7 +546,7 @@ attribution_memory_belief_state:
     conflict_destructive_belief: low
 ```
 
-### 4.2 字段定义
+### 5.2 字段定义
 
 | 字段 | 类型 | 含义 | 高值表现 |
 | --- | --- | --- | --- |
@@ -210,7 +561,7 @@ attribution_memory_belief_state:
 | `mind_reading_expectation` | 0-100 | 期待对方不用说也能懂 | 容易把没察觉解释为不在乎 |
 | `conflict_destructive_belief` | 0-100 | 相信冲突会破坏关系 | 容易回避冲突或把争吵视为关系坏掉 |
 
-### 4.3 归因枚举建议
+### 5.3 归因枚举建议
 
 ```text
 attribution_locus:
@@ -238,7 +589,7 @@ attribution_valence:
 | `internal_unstable_specific` | 认为对方当下状态不好，但不一定长期如此 | 你会把问题聚焦在这次状态，而非整段关系 |
 | `external_stable_global` | 认为外部环境长期阻碍关系 | 你可能把问题理解为现实条件持续不匹配 |
 
-## 5. 与现有维度的映射
+## 6. 与现有维度的映射
 
 | 新字段 | 可由哪些现有维度推导 |
 | --- | --- |
@@ -252,9 +603,9 @@ attribution_valence:
 | `mind_reading_expectation` | `emotion_reassurance_need`、`attachment_closeness_need`、`communication_directness` 低值 |
 | `conflict_destructive_belief` | `communication_conflict_avoidance`、`emotion_shutdown_tendency`、`family_conflict_model` |
 
-## 6. 影响范围
+## 7. 影响范围
 
-### 6.1 event interpretation
+### 7.1 event interpretation
 
 事件解释应先读取事实，再根据归因字段生成感知结果。
 
@@ -273,7 +624,7 @@ interpretation:
 
 同一事实可以产生不同感知值，避免事件引擎机械加减。
 
-### 6.2 relationship satisfaction
+### 7.2 relationship satisfaction
 
 满意度不只受行为影响，也受解释影响。
 
@@ -283,7 +634,7 @@ interpretation:
 | 痛苦型归因 | 积极行为被视为偶然，提升有限 | 消极行为被放大，满意度下降明显 |
 | 自利归因高 | 自己行为对满意度损耗小，对方行为损耗大 | 容易形成“我有理由，你没理由”的关系叙事 |
 
-### 6.3 trust layers
+### 7.3 trust layers
 
 归因应作用于多层信任，而不是只改一个总信任值。
 
@@ -296,7 +647,7 @@ interpretation:
 | “他查我手机是因为不相信我” | 隐私信任下降 |
 | “出事时他会逃” | 危机信任下降 |
 
-### 6.4 old wound memory
+### 7.4 old wound memory
 
 旧伤记忆应记录事实、当时解释、当前解释和重构历史。
 
@@ -315,7 +666,7 @@ old_wound_memory:
 
 当新事件与旧伤相似时，系统可以重新激活旧记忆，让本次事件变得更敏感。
 
-### 6.5 conflict escalation
+### 7.5 conflict escalation
 
 冲突升级可以由“事实严重度 × 归因恶意度 × 旧伤激活 × 信念”共同决定。
 
@@ -332,7 +683,7 @@ escalation_risk =
 
 高 `mind_reading_expectation` 会让“对方没有主动懂我”变成冲突理由。高 `conflict_destructive_belief` 会让小争吵更快升级为“我们是不是不合适”。
 
-### 6.6 repair chance
+### 7.6 repair chance
 
 修复机会不是只看道歉本身，还要看对方如何解释道歉。
 
@@ -343,7 +694,7 @@ escalation_risk =
 | 高 `negative_behavior_attribution` + 旧伤多次激活 | 修复需要更长行动证据 |
 | 高 `self_serving_bias` | 自己道歉容易形式化，对方道歉更容易被挑错 |
 
-### 6.7 report tags
+### 7.7 report tags
 
 报告标签应使用关系行为表达，不写诊断。
 
@@ -357,9 +708,9 @@ escalation_risk =
 | 高 `mind_reading_expectation` | 期待对方主动读懂需求 | `mind_reading_expectation_risk` |
 | 高 `conflict_destructive_belief` | 容易把争吵理解成关系受损 | `conflict_fragility_belief` |
 
-## 7. 事件例子
+## 8. 事件例子
 
-### 7.1 晚回消息
+### 8.1 晚回消息
 
 事实：
 
@@ -385,7 +736,7 @@ external_pressure: work_high
 - `old wound memory`：若过去有冷落记忆，则写入重复模式；
 - `repair chance`：主动说明原因并补偿联系可缓和。
 
-### 7.2 神秘电话
+### 8.2 神秘电话
 
 事实：
 
@@ -410,7 +761,7 @@ prior_trust: medium
 - `conflict escalation`：若解释继续模糊，怀疑敏感上升；
 - `report tags`：可能生成“解释不完整敏感”“秘密管理风险”。
 
-### 7.3 异性饭局
+### 8.3 异性饭局
 
 事实：
 
@@ -435,7 +786,7 @@ later_explanation: partial
 - `trust layers`：事实信任和忠诚信任同时变化；
 - `repair chance`：完整说明、承认省略重点、后续边界协议可修复。
 
-### 7.4 争吵后冷处理
+### 8.4 争吵后冷处理
 
 事实：
 
@@ -460,7 +811,7 @@ previous_cold_treatment_count: 2
 - `old wound memory`：写入“冲突后被丢下”的旧伤；
 - `repair chance`：恢复沟通时若能解释冷静时间规则，可降低重复风险。
 
-### 7.5 主动道歉和补偿
+### 8.5 主动道歉和补偿
 
 事实：
 
@@ -486,9 +837,9 @@ repeat_prevention: stated
 - `memory_reconstruction_bias`：持续行动可把旧伤向正向重构；
 - `report tags`：可能生成“可通过具体行动修复”“需要长期行动证据”。
 
-## 8. 计分与更新建议
+## 9. 计分与更新建议
 
-### 8.1 初始来源
+### 9.1 初始来源
 
 初始字段可来自三类输入：
 
@@ -496,7 +847,7 @@ repeat_prevention: stated
 2. 当前关系状态：满意度、未解决冲突、信任层；
 3. 历史记忆：旧伤数量、修复进度、重复模式。
 
-### 8.2 更新规则草案
+### 9.2 更新规则草案
 
 ```text
 if negative_event and explanation_is_internal_stable_global:
@@ -518,7 +869,7 @@ if self_action explained externally but partner_same_action explained internally
   self_serving_bias += medium_delta
 ```
 
-### 8.3 可信度
+### 9.3 可信度
 
 这些字段不应由单题或单次事件强行确定。
 
@@ -529,11 +880,11 @@ if self_action explained externally but partner_same_action explained internally
 | 4-6 | 中高，可用于报告可见标签 |
 | 7+ | 高，可用于长期画像 |
 
-## 9. 未来 Q151-Q180 加题方向
+## 10. 未来 Q151-Q180 加题方向
 
 `docs/design/23_questionnaire_dimension_coverage.md` 已建议 Q151-Q180 用于补强低覆盖维度。若加入归因、记忆与关系信念系统，可在其中插入或替换以下题目方向。
 
-### 9.1 优先加入字段
+### 10.1 优先加入字段
 
 | 字段 | 建议题型 | 题目方向 |
 | --- | --- | --- |
@@ -547,7 +898,7 @@ if self_action explained externally but partner_same_action explained internally
 | `mind_reading_expectation` | `slider` | 是否期待亲密的人不用明说也应该懂 |
 | `conflict_destructive_belief` | `slider` | 是否觉得争吵意味着关系已经伤了根基 |
 
-### 9.2 题号草案
+### 10.2 题号草案
 
 | 题号 | 目标字段 | 题型 | 主题 |
 | --- | --- | --- | --- |
@@ -562,7 +913,7 @@ if self_action explained externally but partner_same_action explained internally
 
 如果必须限制在 Q151-Q180 内，可优先把 Q181-Q188 合并进 `Q173-Q180：危机模式补强`，因为这些字段直接影响冲突、旧伤和修复。
 
-## 10. JSON 字段扩展建议
+## 11. JSON 字段扩展建议
 
 未来题库 JSON 可新增可选字段，不影响当前 MVP 必须字段。
 
@@ -608,7 +959,7 @@ if self_action explained externally but partner_same_action explained internally
 - `field_effects` 影响本文系统字段，而非 128维主表；
 - 选项仍可同时影响 `dimension_effects`，用于兼容原计分系统。
 
-## 11. 报告表达边界
+## 12. 报告表达边界
 
 报告应写：
 
@@ -627,7 +978,7 @@ if self_action explained externally but partner_same_action explained internally
 你们注定不合适。
 ```
 
-## 12. MVP 非目标
+## 13. MVP 非目标
 
 当前不做：
 
@@ -638,7 +989,7 @@ if self_action explained externally but partner_same_action explained internally
 - 调整现有 scoring 或 reporting；
 - 把字段作为心理诊断或现实关系建议。
 
-## 13. 后续实施顺序
+## 14. 后续实施顺序
 
 建议后续按以下顺序推进：
 
