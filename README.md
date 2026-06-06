@@ -127,6 +127,16 @@ python tests/scenario_test.py
 python tests/reporting_test.py
 ```
 
+## 问卷文档一致性检查
+
+检查题库、计分规则、覆盖率和 JSON 配置草案中反引号包裹的维度ID是否存在于 128维主表：
+
+```bash
+python scripts/check_questionnaire_dimension_ids.py
+```
+
+该脚本会输出合法维度ID总数、扫描到的维度引用总数、未识别维度ID列表，以及未识别维度ID所在文件和行号。
+
 导出的 `playtest_logs/` 只用于本地试玩记录，不进入版本库。
 
 ## v0.1.7 关系复盘报告
