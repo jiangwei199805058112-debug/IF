@@ -130,6 +130,7 @@ python tests/questionnaire_loader_test.py
 python tests/questionnaire_scoring_test.py
 python tests/questionnaire_reporting_test.py
 python tests/questionnaire_runner_test.py
+python tests/relationship_interpretation_test.py
 ```
 
 ## 问卷 MVP JSON 配置
@@ -449,3 +450,13 @@ python -m if_game.questionnaire.runner
 - 补充真实原因层、解释可信度、可见线索和信任校准机制。
 
 本次仍是纯文档设计，不修改 Python 代码，不修改现有题库 JSON，也不接入游戏运行逻辑。
+
+## v0.1.24 关系事件解释原型
+
+新增 `if_game/relationship_interpretation.py` 和 `tests/relationship_interpretation_test.py`，用于验证真实原因层、解释层、可见线索、证据强度、信任校准和“玩家/NPC判断 × 事实”四象限的最小计算路径。
+
+该原型只提供纯函数计算，不接 AI API，不做复杂 UI，也不接入现有 14 天主流程。测试方式：
+
+```bash
+python tests/relationship_interpretation_test.py
+```
