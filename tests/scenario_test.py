@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from if_game.engine import run_14_day_simulation
+from if_game.engine import run_all_playtest_scenarios
 from if_game.event_loader import load_playtest_scenarios
 
 
@@ -38,13 +38,18 @@ def main() -> None:
     scenario_data = load_playtest_scenarios()
     scenarios = scenario_data.get("scenarios", [])
     assert len(scenarios) >= 5
+    scenario_by_id = {scenario["id"]: scenario for scenario in scenarios}
 
-    for scenario in scenarios:
-        result = run_14_day_simulation(
-            scenario["entry_mode"],
-            scenario["profile_pair_id"],
-            scripted_choices=scenario["scripted_choices"],
-        )
+    results = run_all_playtest_scenarios()
+    assert len(results) == len(scenarios)
+
+    for result in results:
+        scenario = scenario_by_id[result["scenario_id"]]
+        assert result["scenario_title"]
+        assert "scenario_description" in result
+        assert isinstance(result["memory_summaries"], list)
+        assert result["feedback_level"]
+        assert isinstance(result["active_hooks"], list)
         _assert_scenario_expectations(scenario, result)
         print(
             f"{scenario['id']}: {result['final_stage']} | "

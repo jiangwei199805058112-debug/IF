@@ -80,3 +80,39 @@ python -m if_game.main
 - 分分合合路径。
 
 v0.1.5 仍然不做 UI、AI、数据库、存档、完整一年、完整经济系统或完整亲密系统。
+
+## v0.1.6 试玩记录与导出
+
+v0.1.6 增加了命令行试玩辅助和 UTF-8 文本报告导出，方便真实试玩后复盘 14 天 transcript、最终阶段、反馈等级、记忆摘要和触发事件。
+
+命令行运行：
+
+```bash
+python -m if_game.main --list-scenarios
+python -m if_game.main --scenario scenario_repair
+python -m if_game.main --scenario scenario_crisis_lie --export playtest_logs/crisis.txt
+python -m if_game.main --run-all-scenarios
+python -m if_game.main --run-all-scenarios --export playtest_logs/all_scenarios.txt
+```
+
+Windows 控制台中文乱码处理方式见：
+
+```text
+docs/troubleshooting_windows_encoding.md
+```
+
+也可以使用辅助脚本：
+
+```bat
+scripts\run_if_utf8.bat
+```
+
+测试方式：
+
+```bash
+python tests/smoke_test.py
+python tests/scenario_test.py
+python tests/reporting_test.py
+```
+
+导出的 `playtest_logs/` 只用于本地试玩记录，不进入版本库。

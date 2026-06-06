@@ -320,6 +320,7 @@ def run_playtest_scenario(scenario: dict[str, Any]) -> dict[str, Any]:
     )
     result["scenario_id"] = str(scenario["id"])
     result["scenario_title"] = str(scenario["title"])
+    result["scenario_description"] = str(scenario.get("description", ""))
     return result
 
 
