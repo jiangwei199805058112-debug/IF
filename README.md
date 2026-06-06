@@ -190,6 +190,12 @@ python -m if_game.questionnaire.runner
 
 该入口会读取 `if_game/data/questionnaire_mvp.json` 中的 25 道快速版题，按顺序展示题号、标题、题干、选项或滑条/二维坐标提示，收集答案后调用 loader、scoring 和 reporting 生成中文问卷报告。当前只作为问卷 MVP 独立验证入口，不接 UI、不接 AI API，也不接入 14 天主流程。
 
+也可以从主控制台菜单进入：
+
+```bash
+python -m if_game.main
+```
+
 runner 测试：
 
 ```bash

@@ -5,12 +5,14 @@ from typing import Any
 
 from .engine import run_14_day_simulation, run_all_playtest_scenarios, run_playtest_scenario
 from .event_loader import load_playtest_scenarios, load_sample_characters
+from .questionnaire.runner import run_questionnaire
 from .reporting import format_transcript, write_report, write_scenario_summary
 
 
 MODE_OPTIONS = [
     ("interactive", "互动运行 14 天"),
     ("scenarios", "运行内置场景测试摘要"),
+    ("questionnaire", "回答问卷 MVP 快速版"),
 ]
 
 ENTRY_OPTIONS = [
@@ -68,6 +70,11 @@ def _run_interactive_menu() -> None:
                 f"记忆 {result['memory_count']} 条；反馈 {result['feedback_level']}"
             )
         print("----- 结束 -----")
+        return
+
+    if mode == "questionnaire":
+        print()
+        run_questionnaire()
         return
 
     entry_mode = _choose("选择开局模式：", ENTRY_OPTIONS, default_index=1)
