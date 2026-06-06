@@ -6,20 +6,24 @@
 - `docs/design/16_questionnaire_dimension_table.md`
 - `docs/design/17_question_type_schema.md`
 
-当前版本先完成第一批题库：**基础资料 + 恋爱经历 + 依恋亲密**。后续继续补充信任怀疑、边界占有、诚实隐瞒、冲突沟通、欲望忠诚、现实压力、数字生活、双标检测和反向验证。
+当前文件完成第一批题库：**基础资料 + 恋爱经历 + 依恋亲密**。超级真实版题库后续批次已拆分到：
+
+- `docs/design/18_super_realistic_question_bank_part2.md`：信任怀疑、边界占有、诚实隐瞒、双标检测；
+- `docs/design/18_super_realistic_question_bank_part3.md`：冲突沟通、欲望忠诚、道德责任；
+- `docs/design/18_super_realistic_question_bank_part4.md`：社交网络、现实压力、数字生活、家庭成长、综合反向验证。
 
 本文档只做题库设计，不修改控制台原型运行逻辑。
 
 ## 1. 题库总体目标
 
-超级真实版目标题量：100-180题。第一版建议以约150题为目标。
+超级真实版目标题量：100-180题。第一版以 Q001-Q150 为完整结构。
 
 | 批次 | 模块 | 目标题量 | 状态 |
 | --- | --- | ---: | --- |
 | 第一批 | 基础资料、恋爱经历、依恋亲密 | 约30题 | 本文档已完成 |
-| 第二批 | 信任怀疑、边界占有、诚实隐瞒 | 约40题 | 待补 |
-| 第三批 | 冲突沟通、欲望忠诚、道德责任 | 约40题 | 待补 |
-| 第四批 | 社交网络、现实压力、数字生活、双标/反向验证 | 约40题 | 待补 |
+| 第二批 | 信任怀疑、边界占有、诚实隐瞒 | 约40题 | 已完成，见 `18_super_realistic_question_bank_part2.md` |
+| 第三批 | 冲突沟通、欲望忠诚、道德责任 | 约40题 | 已完成，见 `18_super_realistic_question_bank_part3.md` |
+| 第四批 | 社交网络、现实压力、数字生活、双标/反向验证 | 约40题 | 已完成，见 `18_super_realistic_question_bank_part4.md` |
 
 ## 2. 题目格式说明
 
@@ -329,8 +333,8 @@
   - C. 只有撑不住时才会说。
   - D. 不太喜欢求助，怕欠人情或被看低。
   - E. 表面说不需要，但心里希望对方主动发现。
-- 影响维度：`attachment_reliance_comfort`、`self_vulnerability_fear`、`self_face_sensitivity`
-- 备注：`self_vulnerability_fear` 后续可映射到 `attachment_vulnerability_fear`。
+- 影响维度：`attachment_reliance_comfort`、`attachment_vulnerability_fear`、`self_face_sensitivity`
+- 备注：用于依赖舒适度、暴露脆弱恐惧和面子敏感。
 
 ### Q024 被别人依赖
 
@@ -441,36 +445,21 @@
 - 承诺节奏；
 - 修复接受度。
 
-尚未覆盖或覆盖不足的模块：
+第一批尚未覆盖或覆盖不足的模块，已经在后续文件中补齐：
 
-- 信任怀疑；
-- 占有欲与边界；
-- 诚实、隐瞒与信息管理；
-- 冲突与沟通；
-- 欲望、新鲜感与忠诚；
-- 道德、责任与后果意识；
-- 社交网络；
-- 现实压力细化；
-- 数字生活；
-- NPC视角双标题；
-- 反向验证题。
+- 信任怀疑、占有欲与边界、诚实/隐瞒、双标检测：见 `18_super_realistic_question_bank_part2.md`；
+- 冲突沟通、欲望忠诚、道德责任：见 `18_super_realistic_question_bank_part3.md`；
+- 社交网络、现实压力、数字生活、家庭成长、综合反向验证：见 `18_super_realistic_question_bank_part4.md`。
 
-## 7. 下一批建议
+## 7. 后续建议
 
-下一批建议继续写：
+超级真实版题库第一版已经在 Q001-Q150 范围内完成。后续不建议继续盲目加题，而应优先：
 
 ```text
-信任怀疑 + 边界占有 + 诚实隐瞒
+docs/design/19_relationship_report_templates.md
+docs/design/22_questionnaire_scoring_rules.md
+docs/design/23_questionnaire_dimension_coverage.md
+docs/design/24_questionnaire_json_schema.md
 ```
 
-目标约 40 题，重点包括：
-
-- 对方解释不完整；
-- 异性饭局；
-- 前任联系；
-- 查手机、定位、朋友圈线索；
-- 自己隐瞒 vs 对方隐瞒；
-- 半真半假；
-- 小号、备用账号、删除聊天记录；
-- 被揭穿后的反应；
-- 双标检测配对题。
+其中 19 和 22 已完成，下一步应优先做 23 维度覆盖率检查，再决定是否需要补充 Q151-Q180。
