@@ -120,6 +120,7 @@ def main() -> None:
     score_result = score_questionnaire(config, parsed_answers)
     report = render_questionnaire_report(config, parsed_answers, score_result)
     assert "IF 问卷 MVP 报告" in report
+    assert "游戏初始倾向修正摘要" in report
     assert score_result["answered_questions"] == len(config["questions"])
 
     raw_inputs = iter(RAW_ANSWERS[question["id"]] for question in config["questions"])
@@ -130,6 +131,7 @@ def main() -> None:
         output_func=printed_lines.append,
     )
     assert "IF 问卷 MVP 报告" in runner_report
+    assert "游戏初始倾向修正摘要" in runner_report
     assert any("IF 问卷 MVP 控制台" in line for line in printed_lines)
 
     print("questionnaire runner test passed")

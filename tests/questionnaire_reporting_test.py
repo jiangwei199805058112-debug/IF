@@ -208,8 +208,10 @@ def main() -> None:
     assert "完成度" in report
     assert "关键维度" in report
     assert "沟通表露摘要" in report
+    assert "游戏初始倾向修正摘要" in report
     assert "直接沟通" in report
     assert "透明期待" in report
+    assert "这些只是开局倾向" in report
     assert "后续游戏行为" in report
 
     forbidden_phrases = ["你有病", "你一定会", "你就是某种人格"]

@@ -786,3 +786,9 @@ python tests/relationship_state_aggregator_test.py
 新增 `if_game/relationship_flow_integration.py`，把当前 14 天 seed event、分支和玩家选择轻量转换为 `relationship_state_aggregator.py` 可识别的输入，并在事件结算后生成 `RelationshipStateDelta`。
 
 本版本只做旁路接入和玩家可见摘要：旧的 14 天关系数值、结局判定和事件系统不重写；试玩 transcript 和导出报告中会出现“关系状态变化”摘要，但不会暴露 `truth_type`、`deception_level` 等隐藏调试字段。本次不接 AI API，不做 UI，不修改问卷 JSON。
+
+## v0.1.50 问卷初始关系修正规则
+
+新增 `if_game/questionnaire/initial_modifiers.py`，让问卷 MVP 计分结果可以生成轻量初始关系/人格倾向修正，包括信任基线、回应需求、隐私边界敏感、怀疑敏感、冲突修复倾向和自我表露意愿。
+
+问卷修正只作为开局倾向，不作为永久人格定论；后续 14 天流程中的关键事件、重复行为和玩家选择仍会继续覆盖或校准问卷自述。本次不扩展大型题库，不修改问卷 JSON，不接 AI API，也不改变 14 天主流程玩法。

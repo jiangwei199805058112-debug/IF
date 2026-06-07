@@ -3,6 +3,11 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any
 
+from if_game.questionnaire.initial_modifiers import (
+    build_initial_relationship_modifiers,
+    format_initial_modifier_summary,
+)
+
 
 CORE_DIMENSIONS = [
     "attachment_abandonment_anxiety",
@@ -60,6 +65,8 @@ def render_questionnaire_report(
     total_questions = int(score_result.get("total_questions", len(config.get("questions", []))))
     completion_rate = float(score_result.get("completion_rate", 0.0))
     answer_count = sum(1 for _ in answers)
+    initial_modifiers = build_initial_relationship_modifiers(score_result)
+    initial_modifier_summary = format_initial_modifier_summary(initial_modifiers)
 
     lines = [
         "IF 问卷 MVP 报告",
@@ -90,6 +97,9 @@ def render_questionnaire_report(
             "",
             "## 沟通表露摘要",
             _render_communication_disclosure_summary(dimension_scores),
+            "",
+            "## 游戏初始倾向修正摘要",
+            *_format_bullets(initial_modifier_summary),
             "",
             "## 风险提示",
             _render_risk_hint(dimension_scores),
@@ -150,6 +160,10 @@ def _evidence_text(evidence: int) -> str:
     if evidence == 1:
         return "1 个题目"
     return f"{evidence} 个题目"
+
+
+def _format_bullets(lines: list[str]) -> list[str]:
+    return [f"- {line}" for line in lines]
 
 
 def _render_attachment_summary(dimension_scores: dict[str, Any]) -> str:
