@@ -792,3 +792,9 @@ python tests/relationship_state_aggregator_test.py
 新增 `if_game/questionnaire/initial_modifiers.py`，让问卷 MVP 计分结果可以生成轻量初始关系/人格倾向修正，包括信任基线、回应需求、隐私边界敏感、怀疑敏感、冲突修复倾向和自我表露意愿。
 
 问卷修正只作为开局倾向，不作为永久人格定论；后续 14 天流程中的关键事件、重复行为和玩家选择仍会继续覆盖或校准问卷自述。本次不扩展大型题库，不修改问卷 JSON，不接 AI API，也不改变 14 天主流程玩法。
+
+## v0.1.51 长期关系记忆系统 MVP
+
+新增 `if_game/relationship_memory.py` 和 `tests/relationship_memory_test.py`，让 aggregator 产生的旧伤、重复模式和修复信号可以转换为结构化 `RelationshipMemory`。
+
+本版本支持旧伤强度、重复模式归并、修复状态更新和轻量时间衰减；玩家可见摘要不会暴露 `truth_type`、`deception_level` 等隐藏真相。本次不新增数据库、不做完整存档、不做 UI，也不改变当前 14 天控制台原型玩法。

@@ -3,7 +3,7 @@
 ## 1. 当前任务版本号
 
 - 当前账本任务：v0.1.49-v0.1.51 连续任务防丢协议已初始化。
-- 仓库当前 HEAD（v0.1.50 实现提交后）：`ab8efe6 feat: 增加问卷初始关系修正规则`。
+- 仓库当前 HEAD（v0.1.51 开始时）：`15edba2 docs: 更新v0.1.50任务账本状态`。
 - 重要版本号修正：README 已存在 `v0.1.48 关系系统代码落地复盘`，因此后续三个代码阶段统一顺延：
   - v0.1.49：aggregator 接入 14 天主流程。
   - v0.1.50：问卷结果转初始关系/人格修正。
@@ -11,17 +11,17 @@
 
 ## 2. 当前阶段
 
-- 阶段：v0.1.50 问卷结果转初始关系/人格修正已完成并已推送，等待进入 v0.1.51。
-- 已完成阶段 A / v0.1.49；已完成阶段 B / v0.1.50；尚未进入阶段 C / v0.1.51。
-- 下一步代码阶段：v0.1.51 长期 RelationshipMemory 系统。
-- 下一步动作：开始 v0.1.51 前先执行 `git status --short`、`git pull --ff-only origin main`、`git status -sb`，再读取本账本。
+- 阶段：v0.1.51 长期 RelationshipMemory 系统实现已完成，待最终检查、提交和推送。
+- 已完成阶段 A / v0.1.49；已完成阶段 B / v0.1.50；阶段 C / v0.1.51 已实现。
+- 下一步代码阶段：无，等待三阶段完成后的最终验证。
+- 下一步动作：运行 v0.1.51 指定测试与 `git diff --check`，提交并推送本阶段实现，然后进入三阶段完成后的最终验证。
 - 任意后续任务开始前，必须先读取 `docs/context/current_task_ledger.md`，再继续判断当前阶段和下一步动作。
 - 因当前对话已有上下文压缩摘要，已再次执行恢复流程中的必要读取动作：
   - 已读取 README.md。
   - 已读取 docs/context/codex_task_prompts.md。
   - 已执行 `git status --short`。
   - 已执行 `git log --oneline --decorate -8`。
-  - 已对照任务表确认当前阶段为 v0.1.49 已完成，下一阶段为 v0.1.50。
+  - 已对照任务表确认当前阶段为 v0.1.51。
 
 ## 3. 已完成事项
 
@@ -66,6 +66,21 @@
 - 已在 README 末尾追加 v0.1.50 说明。
 - 已提交并推送 v0.1.50 代码阶段实现：
   - `ab8efe6e03d76737f14829a714d271ad29927471 feat: 增加问卷初始关系修正规则`
+- 已提交并推送 v0.1.50 账本状态修正：
+  - `15edba2 docs: 更新v0.1.50任务账本状态`
+- 已执行 v0.1.51 开始前同步检查：
+  - `git status --short`：无输出，工作区干净。
+  - `git pull --ff-only origin main`：Already up to date.
+  - `git status -sb`：`## main...origin/main`。
+- 已阅读 v0.1.51 要求的关系记忆、聚合器、14 天桥接和现有测试文件。
+- 已新增 `if_game/relationship_memory.py`：
+  - `RelationshipMemory` 结构。
+  - `update_relationship_memories()`。
+  - `decay_relationship_memories()`。
+  - `format_memory_summary()`。
+  - `update_memories_from_aggregated_event()`。
+- 已新增 `tests/relationship_memory_test.py`，覆盖旧伤生成、轻微事件不写旧伤、重复模式归并、修复记忆、修复状态、时间衰减、玩家可见摘要和 aggregator 输出消费。
+- 已在 README 末尾追加 v0.1.51 简短说明。
 - 确认工作区在创建本文件前是干净的。
 - 确认最近提交：
   - `c6e068b docs: 更新当前任务账本状态`
@@ -83,10 +98,10 @@
 
 - 阶段 A / v0.1.49：已实现、已测试、已提交并推送。
 - 阶段 B / v0.1.50：已实现、已测试、已提交并推送。
-- 尚未实现阶段 C / v0.1.51：长期 RelationshipMemory 系统。
-- 已为阶段 A / v0.1.49 更新测试；阶段 B/C 尚未进入。
-- 已更新 README 的 v0.1.49 和 v0.1.50 版本说明；v0.1.51 尚未进入。
-- v0.1.51 尚未提交任何代码阶段实现。
+- 阶段 C / v0.1.51：已实现长期 RelationshipMemory 系统 MVP，待最终检查、提交和推送。
+- 已为阶段 A / v0.1.49 和阶段 B / v0.1.50 更新测试；阶段 C 已进入。
+- 已更新 README 的 v0.1.49、v0.1.50 和 v0.1.51 版本说明。
+- v0.1.51 实现尚未提交，计划提交信息为 `feat: 增加长期关系记忆系统MVP`。
 
 ## 5. 禁止事项
 
@@ -209,6 +224,12 @@ git status --short
   - `python tests/questionnaire_initial_modifiers_test.py`：通过，输出 `questionnaire initial modifiers test passed`。
   - `python tests/smoke_test.py`：通过，输出 `smoke test passed`。
   - `git diff --check`：通过，退出码 0；仅有 README、账本和本次修改 Python/测试文件的 LF/CRLF 提示。
+- v0.1.51 已运行测试：
+  - `python tests/relationship_memory_test.py`：通过，输出 `relationship memory test passed`。
+  - `python tests/relationship_state_aggregator_test.py`：通过，输出 `relationship state aggregator test passed`。
+  - `python tests/relationship_interpretation_test.py`：通过，输出 `relationship interpretation test passed`。
+  - `python tests/smoke_test.py`：通过，输出 `smoke test passed`。
+  - `git diff --check`：通过，退出码 0；仅有 README 和账本 LF/CRLF 提示。
 
 ## 9. 已提交 commit
 
@@ -224,9 +245,13 @@ git status --short
   - `2d08e4c docs: 更新v0.1.49任务账本状态`
 - v0.1.50 代码阶段实现已提交：
   - `ab8efe6e03d76737f14829a714d271ad29927471 feat: 增加问卷初始关系修正规则`
-- v0.1.51 尚无新提交。
+- v0.1.50 账本状态修正已提交：
+  - `15edba2 docs: 更新v0.1.50任务账本状态`
+- v0.1.51 实现尚未提交，计划提交信息为：
+  - `feat: 增加长期关系记忆系统MVP`
 
 ## 10. 下一步动作
 
-1. 完成后汇报 v0.1.50 commit SHA、修改文件、测试结果、账本是否已更新和最终 `git status --short`。
-2. 开始 v0.1.51 前先执行 `git status --short`、`git pull --ff-only origin main`、`git status -sb`，再读取本账本。
+1. 提交并推送 `feat: 增加长期关系记忆系统MVP`。
+2. 提交后同步本账本中的 v0.1.51 commit SHA。
+3. 下一阶段改为“三阶段完成后的最终验证”。
