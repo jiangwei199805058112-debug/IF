@@ -756,3 +756,9 @@ python tests/relationship_state_aggregator_test.py
 新增 `interpretation_to_aggregator_input()`，让 `if_game/relationship_interpretation.py` 的解释结果可以转换为 `relationship_state_aggregator.py` 已支持的 dict 输入，并交给 `aggregate_relationship_event()` 结算。
 
 本版本仅做轻量映射和 0-100 到 0-10 的尺度转换，覆盖准确警觉、误会/焦虑和真实欺骗路径；不接主流程，不接 AI API，不做 UI，不修改问卷 JSON，也不破坏当前 14 天控制台原型。
+
+## v0.1.45 冲突沟通事件样例接入聚合器
+
+新增 `if_game/conflict_event_samples.py`，提供 E-CON-01 迟到抱怨、E-CON-02 有效暂停争吵、E-CON-03 嘲讽脆弱表达等轻量事件样例，并可直接交给 `aggregate_relationship_event()` 结算。
+
+同步轻量增强 `relationship_state_aggregator.py` 对 `conflict_response_type`、`defensive_response` 和 `contempt_signal` 的识别，覆盖修复、防卫/反向抱怨、有效暂停不是石墙、嘲讽脆弱表达写旧伤等方向性测试。本次仍不接 AI API，不做 UI，不修改问卷 JSON，也不接入复杂剧情树或完整事件引擎。

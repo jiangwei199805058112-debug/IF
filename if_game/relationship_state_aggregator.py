@@ -21,6 +21,16 @@ ACCURATE_ALERTNESS_VALUES = {"accurate_alertness", "accurate", "准确警觉"}
 OVER_SUSPICION_VALUES = {"over_suspicion", "over_suspicion_pattern", "误会/焦虑"}
 BENIGN_PRIVACY_TRUTH_TYPES = {"privacy_boundary", "private_space", "habit_cleanup"}
 HARMFUL_TRUTH_TYPES = {"concealment", "betrayal", "boundary_blur", "identity_split"}
+POSITIVE_CONFLICT_RESPONSE_TYPES = {
+    "precise_expression",
+    "i_statement",
+    "xyz_statement",
+    "validation_before_disagreement",
+    "repair_attempt",
+}
+DEFENSIVE_CONFLICT_RESPONSE_TYPES = {"defensive_explanation", "cross_complaining"}
+CONTEMPT_CONFLICT_RESPONSE_TYPES = {"contempt", "personality_attack", "exit_threat"}
+MOCKING_COMMUNICATION_RESPONSE_TYPES = {"mocking_response", "judgmental_response"}
 
 
 @dataclass(frozen=True)
@@ -64,8 +74,12 @@ def aggregate_relationship_event(event: Mapping[str, Any]) -> RelationshipStateD
     interpretation_accuracy = str(event.get("interpretation_accuracy", "unknown"))
     projection_bias = _score(event.get("projection_bias_effect", 0))
     threat_bias = _score(event.get("threat_bias_effect", 0))
+    communication_response_type = str(event.get("communication_response_type", "")).strip()
     perceived_responsiveness = _score(event.get("perceived_responsiveness", 0))
     conflict_escalation = _score(event.get("conflict_escalation_risk", 0))
+    conflict_response_type = str(event.get("conflict_response_type", "")).strip()
+    defensive_response = _score(event.get("defensive_response", 0))
+    contempt_signal = _score(event.get("contempt_signal", 0))
     active_listening = _score(event.get("active_listening_skill", 0))
     validation_skill = _score(event.get("validation_skill", 0))
     stonewalling = _score(event.get("stonewalling_level", 0))
@@ -165,7 +179,44 @@ def aggregate_relationship_event(event: Mapping[str, Any]) -> RelationshipStateD
         _add(tags, "active_listener")
         reasons.append("active listening improves repair chance")
 
-    effective_timeout = timeout_repair_success or repair_status in {"repaired", "partially_repaired"}
+    if conflict_response_type in POSITIVE_CONFLICT_RESPONSE_TYPES:
+        repair += 2
+        satisfaction += 1
+        if conflict_response_type == "repair_attempt":
+            _add(tags, "repair_capable")
+        reasons.append("positive conflict response improves repair direction")
+
+    if conflict_response_type in DEFENSIVE_CONFLICT_RESPONSE_TYPES:
+        defensive_response = max(defensive_response, 6)
+
+    if defensive_response > 0:
+        repair -= min(5, defensive_response * 0.55)
+        satisfaction -= min(4, defensive_response * 0.35)
+        stability -= min(3, defensive_response * 0.25)
+        reasons.append("defensive or cross-complaining response lowers repair chance")
+
+    if (
+        conflict_response_type in CONTEMPT_CONFLICT_RESPONSE_TYPES
+        or communication_response_type in MOCKING_COMMUNICATION_RESPONSE_TYPES
+    ):
+        contempt_signal = max(contempt_signal, 8)
+
+    if contempt_signal > 0:
+        trust -= min(6, contempt_signal * 0.45)
+        satisfaction -= min(8, contempt_signal * 0.7)
+        intimacy -= min(7, contempt_signal * 0.6)
+        safety -= min(6, contempt_signal * 0.45)
+        repair -= min(6, contempt_signal * 0.6)
+        old_wound += min(10, contempt_signal * 0.75)
+        _add(tags, "contempt_risk")
+        _add(tags, "old_wound_written")
+        reasons.append("contempt or mockery toward vulnerability writes old wound risk")
+
+    effective_timeout = (
+        timeout_repair_success
+        or repair_status in {"repaired", "partially_repaired"}
+        or conflict_response_type == "effective_timeout"
+    )
     if stonewalling > 0 and not effective_timeout:
         trust -= min(7, stonewalling * 0.55)
         satisfaction -= min(8, stonewalling * 0.7)
@@ -303,7 +354,12 @@ def aggregate_relationship_event(event: Mapping[str, Any]) -> RelationshipStateD
         _add(tags, "short_term_fluctuation")
         reasons.append("event remains a bounded short-term fluctuation")
 
-    major_event = serious_truth_damage or stonewalling >= 7 or repair_status == "repeated_after_repair"
+    major_event = (
+        serious_truth_damage
+        or stonewalling >= 7
+        or contempt_signal >= 7
+        or repair_status == "repeated_after_repair"
+    )
 
     return RelationshipStateDelta(
         source_id=source_id,

@@ -8,6 +8,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from if_game.conflict_event_samples import (  # noqa: E402
+    late_arrival_complaint_event,
+    mocking_vulnerability_event,
+    timeout_request_event,
+)
 from if_game.relationship_state_aggregator import (  # noqa: E402
     RelationshipStateDelta,
     aggregate_relationship_event,
@@ -262,6 +267,61 @@ def _test_repeated_events_write_pattern_memory() -> None:
     assert "pattern_memory_risk" in pattern.report_tags
 
 
+def _test_conflict_repair_sample_improves_repair_chance() -> None:
+    repaired = aggregate_relationship_event(late_arrival_complaint_event("repair"))
+    _assert_common_shape(repaired)
+    assert repaired.source_id == "player"
+    assert repaired.target_id == "npc_a"
+    assert repaired.repair_chance_delta > 0
+    assert repaired.satisfaction_delta >= -3
+    assert "repair_capable" in repaired.report_tags
+
+
+def _test_defensive_or_cross_complaining_sample_lowers_repair() -> None:
+    defensive = aggregate_relationship_event(late_arrival_complaint_event("defensive"))
+    cross_complaining = aggregate_relationship_event(
+        late_arrival_complaint_event("cross_complaining")
+    )
+    _assert_common_shape(defensive)
+    _assert_common_shape(cross_complaining)
+    assert defensive.repair_chance_delta < 0 or defensive.satisfaction_delta < 0
+    assert cross_complaining.repair_chance_delta < 0 or cross_complaining.satisfaction_delta < 0
+    assert cross_complaining.stability_delta < 0
+
+
+def _test_timeout_sample_is_not_stonewalling() -> None:
+    timeout = aggregate_relationship_event(timeout_request_event())
+    _assert_common_shape(timeout)
+    assert timeout.repair_chance_delta > 0
+    assert timeout.old_wound_memory_delta <= 0
+    assert "repair_window_open" in timeout.report_tags
+    _assert_tag_absent(timeout, "stonewalling_pattern")
+
+
+def _test_mocking_vulnerability_sample_writes_old_wound() -> None:
+    mocking = aggregate_relationship_event(mocking_vulnerability_event())
+    _assert_common_shape(mocking)
+    assert mocking.old_wound_memory_delta > 0
+    assert mocking.intimacy_delta < 0
+    assert "contempt_risk" in mocking.report_tags
+    assert "old_wound_written" in mocking.report_tags
+    assert mocking.memory_notes
+
+
+def _test_conflict_samples_can_all_be_aggregated() -> None:
+    samples = [
+        late_arrival_complaint_event("repair"),
+        late_arrival_complaint_event("defensive"),
+        late_arrival_complaint_event("cross_complaining"),
+        timeout_request_event(),
+        mocking_vulnerability_event(),
+    ]
+    for sample in samples:
+        delta = aggregate_relationship_event(sample)
+        _assert_common_shape(delta)
+        assert sample["event_id"].startswith("E-CON-")
+
+
 def main() -> None:
     _test_common_shape_and_reserved_defaults()
     _test_silence_is_not_always_stonewalling()
@@ -275,6 +335,11 @@ def main() -> None:
     _test_fairness_is_not_fifty_fifty()
     _test_same_event_does_not_duplicate_trust_loss()
     _test_repeated_events_write_pattern_memory()
+    _test_conflict_repair_sample_improves_repair_chance()
+    _test_defensive_or_cross_complaining_sample_lowers_repair()
+    _test_timeout_sample_is_not_stonewalling()
+    _test_mocking_vulnerability_sample_writes_old_wound()
+    _test_conflict_samples_can_all_be_aggregated()
 
     print("relationship state aggregator test passed")
 
