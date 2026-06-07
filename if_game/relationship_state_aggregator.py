@@ -96,6 +96,9 @@ def aggregate_relationship_event(event: Mapping[str, Any]) -> RelationshipStateD
     overbenefit_guilt = _signed_score(event.get("overbenefit_guilt_delta", 0))
     felt_appreciation = _signed_score(event.get("felt_appreciation_delta", 0))
     taken_for_granted = _signed_score(event.get("taken_for_granted_delta", 0))
+    direct_dependence = _signed_score(
+        event.get("dependence_delta", event.get("dependence_gap_delta", 0))
+    )
     privacy_conflict = _score(event.get("privacy_boundary_conflict", 0))
     occurrence_count = max(0, int(_score(event.get("occurrence_count", 0), high=100)))
     repair_status = str(event.get("repair_status", "")).strip()
@@ -253,6 +256,10 @@ def aggregate_relationship_event(event: Mapping[str, Any]) -> RelationshipStateD
         satisfaction -= costs_delta * 0.6
         stability -= max(0, costs_delta) * 0.25
         reasons.append("relationship costs affect satisfaction/stability")
+
+    if direct_dependence:
+        dependence += direct_dependence * 0.8
+        reasons.append("dependence changes are tracked without implying intimacy")
 
     if approach_reward:
         excitement += approach_reward * 0.6

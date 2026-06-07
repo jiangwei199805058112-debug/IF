@@ -13,6 +13,11 @@ from if_game.conflict_event_samples import (  # noqa: E402
     mocking_vulnerability_event,
     timeout_request_event,
 )
+from if_game.exchange_event_samples import (  # noqa: E402
+    equity_repair_event,
+    household_underbenefit_event,
+    stable_but_bored_event,
+)
 from if_game.relationship_state_aggregator import (  # noqa: E402
     RelationshipStateDelta,
     aggregate_relationship_event,
@@ -322,6 +327,83 @@ def _test_conflict_samples_can_all_be_aggregated() -> None:
         assert sample["event_id"].startswith("E-CON-")
 
 
+def _test_stable_but_bored_sample_uses_exchange_fields() -> None:
+    bored = aggregate_relationship_event(stable_but_bored_event())
+    _assert_common_shape(bored)
+    assert bored.safety_delta > 0
+    assert bored.excitement_delta <= 0
+    assert bored.trust_delta == 0
+    assert bored.dependence_delta > 0
+    assert "safe_but_bored_pattern" in bored.report_tags
+
+
+def _test_long_term_underbenefit_lowers_satisfaction() -> None:
+    underbenefit = aggregate_relationship_event(household_underbenefit_event())
+    _assert_common_shape(underbenefit)
+    assert underbenefit.satisfaction_delta < 0
+    assert underbenefit.fairness_delta < 0
+    assert underbenefit.trust_delta == 0
+    assert "underbenefit_sensitive" in underbenefit.report_tags
+    assert "taken_for_granted_sensitive" in underbenefit.report_tags
+    assert "pattern_memory_risk" in underbenefit.report_tags
+    assert underbenefit.memory_notes
+
+
+def _test_taken_for_granted_lowers_satisfaction_or_fairness() -> None:
+    taken_for_granted = aggregate_relationship_event(
+        {
+            "event_id": "E-EQU-TFG",
+            "event_type": "equity_conflict",
+            "taken_for_granted_delta": "high",
+            "relationship_rewards_delta": 0,
+            "relationship_costs_delta": 2,
+        }
+    )
+    _assert_common_shape(taken_for_granted)
+    assert taken_for_granted.satisfaction_delta < 0 or taken_for_granted.fairness_delta < 0
+    assert "taken_for_granted_sensitive" in taken_for_granted.report_tags
+
+
+def _test_equity_repair_sample_restores_fairness() -> None:
+    repair = aggregate_relationship_event(equity_repair_event())
+    _assert_common_shape(repair)
+    assert repair.satisfaction_delta >= 0
+    assert repair.fairness_delta > 0
+    assert repair.repair_chance_delta > 0
+    assert repair.trust_delta == 0
+    assert "repair_capable" in repair.report_tags
+
+
+def _test_exchange_fields_do_not_duplicate_trust_loss() -> None:
+    exchange_only = aggregate_relationship_event(
+        {
+            "relationship_rewards_delta": -3,
+            "relationship_costs_delta": 6,
+            "approach_reward_delta": -2,
+            "avoidance_cost_pressure_delta": 5,
+            "boredom_delta": 6,
+            "perceived_equity_delta": -4,
+            "underbenefit_feeling_delta": 6,
+            "taken_for_granted_delta": 5,
+            "dependence_delta": -2,
+        }
+    )
+    _assert_common_shape(exchange_only)
+    assert exchange_only.trust_delta == 0
+    assert exchange_only.satisfaction_delta < 0
+    assert exchange_only.fairness_delta < 0
+    assert "trust_damage_event" not in exchange_only.report_tags
+    assert "deception_risk" not in exchange_only.report_tags
+
+
+def _test_dependence_is_not_intimacy() -> None:
+    dependence_only = aggregate_relationship_event({"dependence_delta": "high"})
+    _assert_common_shape(dependence_only)
+    assert dependence_only.dependence_delta > 0
+    assert dependence_only.intimacy_delta == 0
+    assert dependence_only.trust_delta == 0
+
+
 def main() -> None:
     _test_common_shape_and_reserved_defaults()
     _test_silence_is_not_always_stonewalling()
@@ -340,6 +422,12 @@ def main() -> None:
     _test_timeout_sample_is_not_stonewalling()
     _test_mocking_vulnerability_sample_writes_old_wound()
     _test_conflict_samples_can_all_be_aggregated()
+    _test_stable_but_bored_sample_uses_exchange_fields()
+    _test_long_term_underbenefit_lowers_satisfaction()
+    _test_taken_for_granted_lowers_satisfaction_or_fairness()
+    _test_equity_repair_sample_restores_fairness()
+    _test_exchange_fields_do_not_duplicate_trust_loss()
+    _test_dependence_is_not_intimacy()
 
     print("relationship state aggregator test passed")
 

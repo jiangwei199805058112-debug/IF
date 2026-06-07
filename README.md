@@ -762,3 +762,9 @@ python tests/relationship_state_aggregator_test.py
 新增 `if_game/conflict_event_samples.py`，提供 E-CON-01 迟到抱怨、E-CON-02 有效暂停争吵、E-CON-03 嘲讽脆弱表达等轻量事件样例，并可直接交给 `aggregate_relationship_event()` 结算。
 
 同步轻量增强 `relationship_state_aggregator.py` 对 `conflict_response_type`、`defensive_response` 和 `contempt_signal` 的识别，覆盖修复、防卫/反向抱怨、有效暂停不是石墙、嘲讽脆弱表达写旧伤等方向性测试。本次仍不接 AI API，不做 UI，不修改问卷 JSON，也不接入复杂剧情树或完整事件引擎。
+
+## v0.1.46 社会交换与公平轻量接入聚合器
+
+新增 `if_game/exchange_event_samples.py`，提供安全但沉闷、长期获益不足、主动看见并补偿付出等轻量事件样例，并可直接交给 `aggregate_relationship_event()` 结算。
+
+同步补齐 `relationship_state_aggregator.py` 对 `dependence_delta` 的轻量支持，并继续通过 `relationship_rewards_delta`、`relationship_costs_delta`、`approach_reward_delta`、`avoidance_cost_pressure_delta`、`boredom_delta`、`perceived_equity_delta`、`underbenefit_feeling_delta`、`taken_for_granted_delta` 等字段处理满意度、安全感、活力、公平感和依赖变化。本次不实现完整 CL/CLalt 大系统，不接 AI API，不做 UI，不修改问卷 JSON，也不破坏当前 14 天控制台原型。
