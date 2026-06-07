@@ -4,6 +4,7 @@
 
 - 当前账本任务：v0.1.49-v0.1.51 连续任务防丢协议已初始化。
 - 仓库当前 HEAD（v0.1.51 开始时）：`15edba2 docs: 更新v0.1.50任务账本状态`。
+- 三阶段最终验证开始时 HEAD：`190d4a5 docs: 更新v0.1.51任务账本状态`。
 - 重要版本号修正：README 已存在 `v0.1.48 关系系统代码落地复盘`，因此后续三个代码阶段统一顺延：
   - v0.1.49：aggregator 接入 14 天主流程。
   - v0.1.50：问卷结果转初始关系/人格修正。
@@ -11,10 +12,10 @@
 
 ## 2. 当前阶段
 
-- 阶段：v0.1.51 长期 RelationshipMemory 系统已完成、已提交并推送。
-- 已完成阶段 A / v0.1.49；已完成阶段 B / v0.1.50；阶段 C / v0.1.51 已完成。
-- 下一步代码阶段：无，等待三阶段完成后的最终验证。
-- 下一步动作：执行三阶段完成后的最终验证。
+- 阶段：三阶段完成后的最终验证已完成，关系系统进入稳定观察阶段。
+- 已完成阶段 A / v0.1.49；已完成阶段 B / v0.1.50；阶段 C / v0.1.51 已完成；最终验证已完成。
+- 下一步代码阶段：无，不建议继续大改底层结构。
+- 下一步动作：转向真实试玩日志观察，或小规模接入更多关系事件样例。
 - 任意后续任务开始前，必须先读取 `docs/context/current_task_ledger.md`，再继续判断当前阶段和下一步动作。
 - 因当前对话已有上下文压缩摘要，已再次执行恢复流程中的必要读取动作：
   - 已读取 README.md。
@@ -83,6 +84,15 @@
 - 已在 README 末尾追加 v0.1.51 简短说明。
 - 已提交并推送 v0.1.51 代码阶段实现：
   - `9a9eccf feat: 增加长期关系记忆系统MVP`
+- 已执行三阶段完成后的最终验证：
+  - 检查 `AGENTS.md`、`README.md`、`docs/context/current_task_ledger.md`。
+  - 检查 `if_game/relationship_state_aggregator.py`、`if_game/relationship_interpretation.py`、`if_game/relationship_memory.py`。
+  - 检查 `if_game/relationship_flow_integration.py`、`if_game/engine.py`、`if_game/models.py` 中的主流程、玩家状态和关系字段引用。
+  - 检查关系系统相关测试和 smoke/scenario/reporting 路径。
+- 最终验证中做了最小清理：
+  - 移除 `relationship_state_aggregator.py` 中未使用的 `BENIGN_PRIVACY_TRUTH_TYPES`。
+  - 移除 `relationship_memory.py` 中未使用的 `UNREPAIRED_STATUSES`。
+  - 补充 `tests/relationship_memory_test.py` 中旧 dict 记忆和空输入的兼容测试。
 - 确认工作区在创建本文件前是干净的。
 - 确认最近提交：
   - `c6e068b docs: 更新当前任务账本状态`
@@ -101,9 +111,11 @@
 - 阶段 A / v0.1.49：已实现、已测试、已提交并推送。
 - 阶段 B / v0.1.50：已实现、已测试、已提交并推送。
 - 阶段 C / v0.1.51：已实现、已测试、已提交并推送。
+- 三阶段完成后的最终验证：已完成，待提交本次最小清理和账本更新。
 - 已为阶段 A / v0.1.49 和阶段 B / v0.1.50 更新测试；阶段 C 已进入。
 - 已更新 README 的 v0.1.49、v0.1.50 和 v0.1.51 版本说明。
 - v0.1.51 实现已提交并推送。
+- 关系系统当前进入稳定观察阶段；下一步不建议继续大改底层结构。
 
 ## 5. 禁止事项
 
@@ -232,6 +244,20 @@ git status --short
   - `python tests/relationship_interpretation_test.py`：通过，输出 `relationship interpretation test passed`。
   - `python tests/smoke_test.py`：通过，输出 `smoke test passed`。
   - `git diff --check`：通过，退出码 0；仅有 README 和账本 LF/CRLF 提示。
+- 三阶段最终验证已运行测试：
+  - `python scripts/check_questionnaire_dimension_ids.py`：通过，未发现未识别维度 ID。
+  - `python tests/questionnaire_loader_test.py`：通过，输出 `questionnaire loader test passed`。
+  - `python tests/questionnaire_scoring_test.py`：通过，输出 `questionnaire scoring test passed`。
+  - `python tests/questionnaire_reporting_test.py`：通过，输出 `questionnaire reporting test passed`。
+  - `python tests/questionnaire_runner_test.py`：通过，输出 `questionnaire runner test passed`。
+  - `python tests/questionnaire_initial_modifiers_test.py`：通过，输出 `questionnaire initial modifiers test passed`。
+  - `python tests/relationship_state_aggregator_test.py`：通过，输出 `relationship state aggregator test passed`。
+  - `python tests/relationship_interpretation_test.py`：通过，输出 `relationship interpretation test passed`。
+  - `python tests/relationship_memory_test.py`：通过，输出 `relationship memory test passed`。
+  - `python tests/smoke_test.py`：通过，输出 `smoke test passed`。
+  - `python tests/scenario_test.py`：通过，输出 `scenario test passed`。
+  - `python tests/reporting_test.py`：通过，输出 `reporting test passed`。
+  - `git diff --check`：通过，退出码 0；仅有本次修改 Python/测试文件的 LF/CRLF 提示。
 
 ## 9. 已提交 commit
 
@@ -251,9 +277,10 @@ git status --short
   - `15edba2 docs: 更新v0.1.50任务账本状态`
 - v0.1.51 代码阶段实现已提交：
   - `9a9eccf feat: 增加长期关系记忆系统MVP`
+- 三阶段最终验证最小清理提交待提交。
 
 ## 10. 下一步动作
 
-1. 进入“三阶段完成后的最终验证”。
-2. 最终验证前先执行 `git status --short` 和 `git pull --ff-only origin main`。
-3. 再读取本账本确认阶段，运行第 7 节列出的最终验证命令。
+1. 提交并推送三阶段最终验证最小清理。
+2. 提交后同步本账本中的最终验证 commit SHA。
+3. 后续建议转向真实试玩日志观察，或小规模接入更多关系事件样例；不建议继续大改底层结构。

@@ -19,7 +19,6 @@ LEVEL_SCORES = {
 
 ACCURATE_ALERTNESS_VALUES = {"accurate_alertness", "accurate", "准确警觉"}
 OVER_SUSPICION_VALUES = {"over_suspicion", "over_suspicion_pattern", "误会/焦虑"}
-BENIGN_PRIVACY_TRUTH_TYPES = {"privacy_boundary", "private_space", "habit_cleanup"}
 HARMFUL_TRUTH_TYPES = {"concealment", "betrayal", "boundary_blur", "identity_split"}
 POSITIVE_CONFLICT_RESPONSE_TYPES = {
     "precise_expression",

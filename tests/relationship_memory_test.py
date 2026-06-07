@@ -239,6 +239,28 @@ def _test_no_decay_until_repair_does_not_decay_when_unrepaired() -> None:
     assert decayed[0].intensity == 70
 
 
+def _test_empty_inputs_and_legacy_memory_dict_are_safe() -> None:
+    legacy_memory = {
+        "memory_id": "legacy-memory",
+        "source_event_id": "OLD-EVENT",
+        "source_id": "npc_a",
+        "target_id": "player",
+        "memory_type": "old_wound_memory",
+        "intensity": 35,
+    }
+
+    memories = update_relationship_memories([legacy_memory], {}, {}, day=20)
+    decayed = decay_relationship_memories(memories, current_day=27)
+    summary = format_memory_summary(decayed)
+
+    assert len(memories) == 1
+    assert memories[0].memory_id == "legacy-memory"
+    assert memories[0].repair_status == "unrepaired"
+    assert memories[0].decay_policy == "normal_decay"
+    assert 0 <= decayed[0].intensity <= 35
+    assert summary
+
+
 def _test_player_visible_summary_does_not_leak_debug_truth() -> None:
     memory = RelationshipMemory(
         memory_id="mem:test:summary",
@@ -300,6 +322,7 @@ def main() -> None:
     _test_repaired_status_lowers_old_wound_or_marks_repaired()
     _test_normal_decay_lowers_intensity_by_periods()
     _test_no_decay_until_repair_does_not_decay_when_unrepaired()
+    _test_empty_inputs_and_legacy_memory_dict_are_safe()
     _test_player_visible_summary_does_not_leak_debug_truth()
     _test_aggregator_output_can_be_consumed_by_memory_system()
 

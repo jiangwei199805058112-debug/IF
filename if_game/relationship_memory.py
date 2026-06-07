@@ -21,7 +21,6 @@ LEVEL_SCORES = {
 }
 
 REPAIRED_STATUSES = {"partially_repaired", "repaired"}
-UNREPAIRED_STATUSES = {"", "unrepaired", "acknowledged", "reopened", "repeated_after_repair"}
 
 
 @dataclass(frozen=True)
