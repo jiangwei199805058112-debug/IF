@@ -22,6 +22,11 @@ from if_game.relationship_state_aggregator import (  # noqa: E402
     RelationshipStateDelta,
     aggregate_relationship_event,
 )
+from if_game.relationship_flow_integration import (  # noqa: E402
+    apply_relationship_delta_to_state,
+    build_aggregator_input_from_event,
+    format_relationship_delta_summary,
+)
 
 
 REQUIRED_FIELDS = {
@@ -404,6 +409,54 @@ def _test_dependence_is_not_intimacy() -> None:
     assert dependence_only.trust_delta == 0
 
 
+def _test_flow_integration_builds_delta_without_debug_summary() -> None:
+    event = {
+        "event_id": "SOC_001",
+        "title": "异性饭局/神秘电话",
+    }
+    branch = {
+        "branch_id": "SOC_001_B",
+        "truth": "普通异性朋友，半真半假",
+        "behavior_tags": ["半真半假", "设边界", "追问"],
+        "outcome_delta": {
+            "trust": "medium_down",
+            "security": "slight_down",
+            "pressure": "medium_up",
+            "conflict": "medium_up",
+            "flaw": "medium_up",
+        },
+    }
+    choice = {
+        "id": "set_boundary",
+        "label": "说清楚异性社交边界",
+        "outcome_delta": {"trust": "slight_up", "pressure": "slight_up"},
+    }
+    aggregator_input = build_aggregator_input_from_event(
+        event,
+        {"branch": branch, "choice": choice, "choice_tag": "set_boundary", "day": 8},
+    )
+    assert aggregator_input["event_id"] == "SOC_001"
+    assert aggregator_input["event_type"] == "privacy_boundary"
+    assert aggregator_input["source_id"] == "npc_a"
+    assert aggregator_input["target_id"] == "player"
+
+    delta = aggregate_relationship_event(aggregator_input)
+    _assert_common_shape(delta)
+    assert delta.trust_delta < 0
+    assert delta.repair_chance_delta >= 0
+
+    summaries = format_relationship_delta_summary(delta)
+    assert summaries
+    summary_text = "\n".join(summaries)
+    assert "truth_type" not in summary_text
+    assert "deception_level" not in summary_text
+
+    state: dict = {}
+    apply_relationship_delta_to_state(state, delta)
+    assert state["relationship_aggregator_log"]
+    assert state["relationship_delta_summaries"]
+
+
 def main() -> None:
     _test_common_shape_and_reserved_defaults()
     _test_silence_is_not_always_stonewalling()
@@ -428,6 +481,7 @@ def main() -> None:
     _test_equity_repair_sample_restores_fairness()
     _test_exchange_fields_do_not_duplicate_trust_loss()
     _test_dependence_is_not_intimacy()
+    _test_flow_integration_builds_delta_without_debug_summary()
 
     print("relationship state aggregator test passed")
 

@@ -51,6 +51,10 @@ def main() -> None:
     assert "feedback_level" in result
     assert "review" in result
     assert isinstance(result["memory_summaries"], list)
+    assert isinstance(result["relationship_aggregator_log"], list)
+    assert isinstance(result["relationship_delta_summaries"], list)
+    assert result["relationship_aggregator_log"]
+    assert result["relationship_delta_summaries"]
     assert result["feedback_level"]
     assert result["review"]["main_stage"] == result["final_stage"]
     triggered = set(result["triggered_events"])
@@ -61,6 +65,7 @@ def main() -> None:
     forbidden_tokens = ["真实信任", "真实好感", "trust="]
     for token in forbidden_tokens:
         assert token not in transcript_text
+    assert "关系状态变化" in transcript_text
 
     questionnaire = load_mvp_questionnaire()
     menu_inputs = iter(

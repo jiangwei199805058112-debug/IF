@@ -11,6 +11,12 @@ from .models import (
     RelationshipReview,
     RelationshipState,
 )
+from .relationship_flow_integration import (
+    apply_relationship_delta_to_state,
+    build_aggregator_input_from_event,
+    format_relationship_delta_summary,
+)
+from .relationship_state_aggregator import aggregate_relationship_event
 
 
 DIRECTION_VALUES = {
@@ -132,6 +138,22 @@ def apply_event_branch(
 
     feedback = generate_perceived_feedback(state, event, branch)
     maybe_write_memory(state, event, branch)
+    aggregator_input = build_aggregator_input_from_event(
+        event,
+        {
+            "branch": branch,
+            "choice": choice,
+            "choice_tag": choice_tag,
+            "day": state.day,
+        },
+    )
+    relationship_delta = aggregate_relationship_event(aggregator_input)
+    apply_relationship_delta_to_state(state, relationship_delta)
+    summaries = format_relationship_delta_summary(relationship_delta)
+    if summaries:
+        state.transcript.append("关系状态变化：")
+        for summary in summaries:
+            state.transcript.append(f"- {summary}")
     return feedback
 
 
@@ -472,6 +494,8 @@ def run_14_day_simulation(
         "visible_summary": visible_summary,
         "memory_count": len(state.memory_entries),
         "memory_summaries": [entry.summary for entry in state.memory_entries],
+        "relationship_aggregator_log": list(getattr(state, "relationship_aggregator_log", [])),
+        "relationship_delta_summaries": list(getattr(state, "relationship_delta_summaries", [])),
         "triggered_events": list(dict.fromkeys(state.triggered_events)),
         "feedback_level": final_feedback.feedback_level,
         "active_hooks": list(dict.fromkeys(state.active_hooks)),

@@ -3,7 +3,7 @@
 ## 1. 当前任务版本号
 
 - 当前账本任务：v0.1.49-v0.1.51 连续任务防丢协议已初始化。
-- 仓库当前 HEAD：`c0e3afd docs: 增加当前任务防丢账本`。
+- 仓库当前 HEAD（v0.1.49 开始时）：`c6e068b docs: 更新当前任务账本状态`。
 - 重要版本号修正：README 已存在 `v0.1.48 关系系统代码落地复盘`，因此后续三个代码阶段统一顺延：
   - v0.1.49：aggregator 接入 14 天主流程。
   - v0.1.50：问卷结果转初始关系/人格修正。
@@ -11,9 +11,10 @@
 
 ## 2. 当前阶段
 
-- 阶段：账本初始化已提交，等待进入 v0.1.49。
-- 尚未进入阶段 A、阶段 B 或阶段 C 的代码实现。
+- 阶段：v0.1.49 aggregator 接入 14 天主流程实现完成，测试已通过，待提交。
+- 已进入并完成阶段 A / v0.1.49 的本地实现；尚未进入阶段 B / v0.1.50 或阶段 C / v0.1.51。
 - 下一步代码阶段：v0.1.49 aggregator 接入 14 天主流程。
+- 下一步动作：提交并推送 v0.1.49 aggregator 接入 14 天主流程。
 - 任意后续任务开始前，必须先读取 `docs/context/current_task_ledger.md`，再继续判断当前阶段和下一步动作。
 - 因当前对话已有上下文压缩摘要，已执行恢复流程中的必要读取动作：
   - 已读取 README.md。
@@ -31,8 +32,24 @@
   - 阶段 C / v0.1.51：长期 RelationshipMemory 系统。
 - 已提交并推送账本初始化：
   - `c0e3afdf829b808bea10c84c93ecb84434e0d592 docs: 增加当前任务防丢账本`
+- 已提交并推送账本状态更新：
+  - `c6e068b22ef22214cbcc8059522232c84750945e docs: 更新当前任务账本状态`
+- 已执行 v0.1.49 开始前同步检查：
+  - `git status --short`：无输出，工作区干净。
+  - `git pull --ff-only origin main`：Already up to date.
+  - `git status -sb`：`## main...origin/main`。
+- 已阅读 v0.1.49 要求的上下文、设计文档、主流程代码、aggregator 代码和相关测试。
+- 已新增 `if_game/relationship_flow_integration.py`：
+  - `build_aggregator_input_from_event(event, choice=None) -> dict`
+  - `apply_relationship_delta_to_state(state, delta) -> dict`
+  - `format_relationship_delta_summary(delta) -> list[str]`
+- 已在 `if_game/engine.py` 的事件分支结算后旁路调用 aggregator，并把玩家可见“关系状态变化”摘要写入 transcript。
+- 已在 `run_14_day_simulation()` 结果中返回 `relationship_aggregator_log` 和 `relationship_delta_summaries`。
+- 已更新 smoke/scenario/reporting/aggregator 相关测试。
+- 已在 README 末尾追加 v0.1.49 说明。
 - 确认工作区在创建本文件前是干净的。
 - 确认最近提交：
+  - `c6e068b docs: 更新当前任务账本状态`
   - `c0e3afd docs: 增加当前任务防丢账本`
   - `7195783 docs: 增加关系系统代码落地复盘`
   - `f9b6d01 feat: 补充沟通表露问卷题`
@@ -45,13 +62,11 @@
 
 ## 4. 未完成事项
 
-- 尚未执行下载任务表要求的 `git pull --ff-only origin main`。
-- 尚未阅读阶段 A/B/C 所需全部设计文档和代码文件。
-- 尚未实现阶段 A / v0.1.49：aggregator 接入 14 天主流程。
+- 阶段 A / v0.1.49：本地实现和测试已完成，尚未提交推送。
 - 尚未实现阶段 B / v0.1.50：问卷结果转初始关系/人格修正。
 - 尚未实现阶段 C / v0.1.51：长期 RelationshipMemory 系统。
-- 尚未为阶段 A/B/C 新增或更新测试。
-- 尚未更新 README 的阶段 A/B/C 版本说明。
+- 已为阶段 A / v0.1.49 更新测试；阶段 B/C 尚未进入。
+- 已更新 README 的 v0.1.49 版本说明；v0.1.50/v0.1.51 尚未进入。
 - 尚未提交任何 v0.1.49-v0.1.51 代码阶段实现。
 
 ## 5. 禁止事项
@@ -146,12 +161,17 @@ git status --short
 
 ## 8. 已运行测试结果
 
-- 当前账本初始化阶段尚未运行业务测试。
-- 已运行提交前检查：
-  - `git diff --check`：通过，无输出。
+- v0.1.49 已运行测试：
+  - `python tests/relationship_state_aggregator_test.py`：通过。
+  - `python tests/relationship_interpretation_test.py`：通过。
+  - `python tests/smoke_test.py`：通过。
+  - `python tests/scenario_test.py`：通过。
+  - `python tests/reporting_test.py`：通过。
+- v0.1.49 已运行提交前检查：
+  - `git diff --check`：通过，仅有 CRLF 提示。
 - 已运行只读检查：
   - `git status --short`：创建账本前无输出，工作区干净。
-  - `git log --oneline --decorate -8`：账本初始化提交后，HEAD 位于 `c0e3afd`。
+  - `git log --oneline --decorate -8`：v0.1.49 开始时 HEAD 位于 `c6e068b`。
 - 已知账本初始化提交后，`git status --short` 为干净状态。
 - 本次状态修正文档需要重新运行 `git diff --check`；最终结果以完成汇报为准。
 
@@ -161,17 +181,16 @@ git status --short
   - `71957834e4da508d2cd5610255169dce1dfda6c9 docs: 增加关系系统代码落地复盘`
 - 本账本初始化已提交：
   - `c0e3afdf829b808bea10c84c93ecb84434e0d592 docs: 增加当前任务防丢账本`
-- 阶段 A/B/C 尚无新提交。
+- 本账本状态更新已提交：
+  - `c6e068b22ef22214cbcc8059522232c84750945e docs: 更新当前任务账本状态`
+- v0.1.49 代码阶段实现待提交；最终 commit SHA 以完成汇报为准。
+- v0.1.50-v0.1.51 尚无新提交。
 
 ## 10. 下一步动作
 
-1. 开始 v0.1.49 前先执行 `git status --short`。
-2. 执行 `git pull --ff-only origin main`。
-3. 再读取 `docs/context/current_task_ledger.md`。
-4. 然后进入 v0.1.49 aggregator 接入 14 天主流程。
-5. 进入 v0.1.49 前必须确认：
-   - `git status --short`
-   - `git pull --ff-only origin main`
-   - `git status -sb`
-6. 若工作区不干净，停止并汇报，不要覆盖、不要 reset、不要 stash。
-7. 进入 v0.1.49 前再次阅读任务表列出的阶段 A 必读设计文档、主流程代码和相关测试。
+1. 运行 `git diff --check`。
+2. 检查 `git status --short`，确认只包含 v0.1.49 相关文件。
+3. 按实际修改文件 `git add`。
+4. 提交 `feat: 将关系状态聚合器接入14天流程`。
+5. 推送 `origin main`。
+6. 完成后汇报 commit SHA、修改文件、测试结果、账本是否已更新和最终 `git status --short`。

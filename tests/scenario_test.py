@@ -56,6 +56,10 @@ def main() -> None:
         assert isinstance(result["memory_summaries"], list)
         assert result["feedback_level"]
         assert isinstance(result["active_hooks"], list)
+        assert isinstance(result["relationship_aggregator_log"], list)
+        assert isinstance(result["relationship_delta_summaries"], list)
+        assert len(result["relationship_aggregator_log"]) >= len(result["triggered_events"])
+        assert result["relationship_delta_summaries"]
         assert isinstance(result["review"], dict)
         assert result["review"]["summary"]
         assert result["review"]["main_reasons"]

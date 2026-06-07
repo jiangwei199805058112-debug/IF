@@ -20,6 +20,8 @@ FORBIDDEN_TOKENS = [
     "feedback_level:",
     "active_hooks:",
     "triggered_events:",
+    "truth_type",
+    "deception_level",
     "trust=",
     "security=",
     "conflict=",
@@ -47,6 +49,7 @@ def main() -> None:
     summary_report = format_summary_report(result)
     for token in REQUIRED_REPORT_TOKENS:
         assert token in transcript_report
+    assert "关系状态变化" in transcript_report
     assert "scenario_repair" not in transcript_report
     assert "final_stage:" not in summary_report
     assert "有效修复路径" in summary_report

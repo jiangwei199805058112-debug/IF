@@ -780,3 +780,9 @@ python tests/relationship_state_aggregator_test.py
 新增 `docs/context/2026-06-07_v0_1_48_relationship_code_landing_review.md`，复盘 v0.1.42-v0.1.47 中 aggregator、解释层适配器、冲突/交换事件样例和沟通表露问卷的代码落地情况。
 
 文档明确当前模块数据流、尚未接入主流程/14 天事件/试玩报告/长期记忆/问卷初始状态的边界，以及下一阶段推荐任务顺序。本次只更新文档，不修改 Python 代码，不修改问卷 JSON，不接 UI 或 AI API。
+
+## v0.1.49 aggregator 接入 14 天主流程
+
+新增 `if_game/relationship_flow_integration.py`，把当前 14 天 seed event、分支和玩家选择轻量转换为 `relationship_state_aggregator.py` 可识别的输入，并在事件结算后生成 `RelationshipStateDelta`。
+
+本版本只做旁路接入和玩家可见摘要：旧的 14 天关系数值、结局判定和事件系统不重写；试玩 transcript 和导出报告中会出现“关系状态变化”摘要，但不会暴露 `truth_type`、`deception_level` 等隐藏调试字段。本次不接 AI API，不做 UI，不修改问卷 JSON。
