@@ -713,3 +713,32 @@ python tests/relationship_interpretation_test.py
 - 玩家可见报告与 debug 报告的边界。
 
 本次仍是纯文档设计，不修改 Python 代码，不修改问卷 JSON，也不接入游戏运行逻辑。
+
+## v0.1.42 关系状态聚合器原型
+
+新增 `if_game/relationship_state_aggregator.py` 和 `tests/relationship_state_aggregator_test.py`，用于将单次关系事件汇总为可测试、可解释、带方向性的关系状态变化。
+
+本版本新增 `RelationshipStateDelta`，输出字段包括：
+
+- `source_id`、`target_id`；
+- `trust_delta`、`satisfaction_delta`、`intimacy_delta`、`stability_delta`；
+- `repair_chance_delta`、`old_wound_memory_delta`；
+- `safety_delta`、`excitement_delta`、`fairness_delta`、`dependence_delta`；
+- `report_tags`、`memory_notes`、`debug_reasons`。
+
+新增 `aggregate_relationship_event()`，第一版支持 dict 输入，并实现以下 MVP 裁决规则：
+
+- 隐私边界冲突不等于欺骗；
+- 高欺骗和高伤害主要由 `trust_delta` 承担，避免多个系统重复扣信任；
+- 石墙会降低修复机会并增加旧伤记忆；
+- 高质量修复会提升修复机会；
+- 重复事件和修复后再犯会写入 `memory_notes`；
+- MVP 先预留 `safety_delta`、`excitement_delta`、`fairness_delta`、`dependence_delta` 字段，方便后续 v0.1.43-v0.1.46 扩展。
+
+测试方式：
+
+```bash
+python tests/relationship_state_aggregator_test.py
+```
+
+本次仍不接 AI API，不做 UI，不接完整事件引擎，不修改问卷 JSON，也不破坏当前 14 天控制台原型。
