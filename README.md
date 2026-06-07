@@ -750,3 +750,9 @@ python tests/relationship_state_aggregator_test.py
 同步轻量扩展 `if_game/relationship_state_aggregator.py`，让预留的 `safety_delta`、`excitement_delta`、`fairness_delta` 能支持本轮方向性裁决测试。
 
 本次仍不接 AI API，不做 UI，不修改问卷 JSON，不接完整事件引擎，也不破坏当前 14 天控制台原型。
+
+## v0.1.44 关系解释层轻量接入聚合器
+
+新增 `interpretation_to_aggregator_input()`，让 `if_game/relationship_interpretation.py` 的解释结果可以转换为 `relationship_state_aggregator.py` 已支持的 dict 输入，并交给 `aggregate_relationship_event()` 结算。
+
+本版本仅做轻量映射和 0-100 到 0-10 的尺度转换，覆盖准确警觉、误会/焦虑和真实欺骗路径；不接主流程，不接 AI API，不做 UI，不修改问卷 JSON，也不破坏当前 14 天控制台原型。

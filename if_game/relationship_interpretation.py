@@ -40,6 +40,18 @@ TRACE_WEIGHTS = {
     "payment_or_location_trace": 20,
 }
 
+DECEPTION_TRUTH_TYPES = {
+    "concealment",
+    "betrayal",
+    "manipulation",
+}
+
+PRIVACY_TRUTH_TYPES = {
+    "privacy_boundary",
+    "private_space",
+    "habit_cleanup",
+}
+
 NO_PHONE_TRACE_CONFLICTS = {
     "online_but_no_reply",
     "social_media_updated_but_no_reply",
@@ -184,6 +196,63 @@ def interpret_relationship_event(event: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def interpretation_to_aggregator_input(
+    result: dict[str, Any],
+    source_id: str = "",
+    target_id: str = "",
+) -> dict[str, Any]:
+    """Convert an interpretation result into relationship_state_aggregator input.
+
+    The interpretation layer uses 0-100 scores, while the aggregator prototype
+    expects compact 0-10 levels. This adapter keeps the old interpretation result
+    intact and only emits the fields the aggregator can already consume.
+    """
+
+    truth_layer = _mapping(result.get("truth_layer"))
+    explanation_layer = _mapping(result.get("explanation_layer"))
+    relationship_effects = _mapping(result.get("relationship_effects"))
+    report_tags = result.get("report_tags", [])
+    quadrant = _mapping(result.get("quadrant"))
+
+    truth_type = str(truth_layer.get("truth_type", ""))
+    interpretation_accuracy = str(
+        result.get("interpretation_accuracy", quadrant.get("type", "unknown"))
+    )
+
+    evidence_chain_strength = _scale_100_to_10(result.get("evidence_chain_strength", 0))
+    truth_harm_level = _scale_100_to_10(truth_layer.get("truth_harm_level", 0))
+    deception_level = _deception_level_for_aggregator(
+        truth_type,
+        truth_layer,
+        explanation_layer,
+        evidence_chain_strength,
+    )
+
+    return {
+        "source_id": source_id,
+        "target_id": target_id,
+        "truth_type": truth_type,
+        "truth_harm_level": truth_harm_level,
+        "deception_level": deception_level,
+        "evidence_chain_strength": evidence_chain_strength,
+        "interpretation_type": _interpretation_type_for_aggregator(interpretation_accuracy),
+        "interpretation_accuracy": interpretation_accuracy,
+        "privacy_boundary_conflict": _privacy_boundary_conflict_for_aggregator(
+            truth_type,
+            truth_layer,
+            report_tags,
+        ),
+        "projection_bias_effect": 7 if interpretation_accuracy == "over_suspicion" else 0,
+        "threat_bias_effect": 7 if interpretation_accuracy == "over_suspicion" else 0,
+        "selective_blindness_effect": 7 if interpretation_accuracy == "misplaced_trust" else 0,
+        "conflict_escalation_risk": _scale_100_to_10(
+            relationship_effects.get("conflict_escalation", 0)
+        ),
+        "pattern_key": str(result.get("event_id", "")),
+        "occurrence_count": _occurrence_count_for_aggregator(explanation_layer),
+    }
+
+
 def _mapping(value: Any) -> Mapping[str, Any]:
     return value if isinstance(value, Mapping) else {}
 
@@ -198,6 +267,55 @@ def _clamp_number(value: Any, low: float = 0.0, high: float = 100.0) -> float:
 
 def _clamp_delta(value: float) -> float:
     return max(-100.0, min(100.0, value))
+
+
+def _scale_100_to_10(value: Any) -> float:
+    return round(_clamp_number(value) / 10, 2)
+
+
+def _deception_level_for_aggregator(
+    truth_type: str,
+    truth_layer: Mapping[str, Any],
+    explanation_layer: Mapping[str, Any],
+    evidence_chain_strength: float,
+) -> float:
+    if truth_type not in DECEPTION_TRUTH_TYPES:
+        return 0.0
+
+    moral_severity = _scale_100_to_10(truth_layer.get("truth_moral_severity", 0))
+    credibility_deficit = _scale_100_to_10(
+        100 - _clamp_number(explanation_layer.get("explanation_credibility", 100))
+    )
+    return round(max(moral_severity, evidence_chain_strength, credibility_deficit), 2)
+
+
+def _privacy_boundary_conflict_for_aggregator(
+    truth_type: str,
+    truth_layer: Mapping[str, Any],
+    report_tags: Any,
+) -> float:
+    tags = report_tags if isinstance(report_tags, list) else []
+    if truth_type in PRIVACY_TRUTH_TYPES or "privacy_boundary_conflict" in tags:
+        return max(2.0, _scale_100_to_10(truth_layer.get("truth_harm_level", 0)))
+    return 0.0
+
+
+def _interpretation_type_for_aggregator(interpretation_accuracy: str) -> str:
+    if interpretation_accuracy in {"accurate_alertness", "over_suspicion"}:
+        return "suspicion"
+    if interpretation_accuracy == "stable_trust":
+        return "benign_interpretation"
+    if interpretation_accuracy == "misplaced_trust":
+        return "selective_blindness"
+    return "unknown"
+
+
+def _occurrence_count_for_aggregator(explanation_layer: Mapping[str, Any]) -> int:
+    try:
+        repetition = int(explanation_layer.get("excuse_repetition_count", 0))
+    except (TypeError, ValueError):
+        repetition = 0
+    return max(0, repetition)
 
 
 def _normalize_judgment(value: Any) -> str:

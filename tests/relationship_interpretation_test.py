@@ -8,7 +8,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from if_game.relationship_interpretation import interpret_relationship_event
+from if_game.relationship_interpretation import (
+    interpret_relationship_event,
+    interpretation_to_aggregator_input,
+)
+from if_game.relationship_state_aggregator import aggregate_relationship_event
 
 
 def _credible_busy_event(player_judgment: str = "trust_no_problem") -> dict:
@@ -73,6 +77,15 @@ def _assert_score_range(result: dict) -> None:
         assert -100 <= value <= 100
 
 
+def _aggregate_interpretation(result: dict):
+    aggregator_input = interpretation_to_aggregator_input(
+        result,
+        source_id="npc_a",
+        target_id="player",
+    )
+    return aggregator_input, aggregate_relationship_event(aggregator_input)
+
+
 def main() -> None:
     accurate = interpret_relationship_event(_concealment_event("suspect_problem"))
     assert accurate["quadrant"]["type"] == "accurate_alertness"
@@ -84,11 +97,26 @@ def main() -> None:
     assert "repeated_excuse_alert" in accurate["report_tags"]
     _assert_score_range(accurate)
 
+    accurate_input, accurate_delta = _aggregate_interpretation(accurate)
+    assert accurate_input["source_id"] == "npc_a"
+    assert accurate_input["target_id"] == "player"
+    assert accurate_input["truth_type"] == "concealment"
+    assert accurate_input["truth_harm_level"] > 0
+    assert accurate_input["evidence_chain_strength"] > 0
+    assert "accurate_alertness" in accurate_delta.report_tags
+    assert accurate_delta.trust_delta < 0
+
     over_suspicion = interpret_relationship_event(_credible_busy_event("suspect_problem"))
     assert over_suspicion["quadrant"]["type"] == "over_suspicion"
     assert over_suspicion["truth_layer"]["has_real_problem"] is False
     assert "over_suspicion" in over_suspicion["report_tags"]
     _assert_score_range(over_suspicion)
+
+    over_suspicion_input, over_suspicion_delta = _aggregate_interpretation(over_suspicion)
+    assert over_suspicion_input["truth_harm_level"] <= 3
+    assert over_suspicion_input["evidence_chain_strength"] <= 3
+    assert over_suspicion_delta.trust_delta >= -3
+    assert "over_suspicion_pattern" in over_suspicion_delta.report_tags
 
     stable = interpret_relationship_event(_credible_busy_event("trust_no_problem"))
     assert stable["quadrant"]["type"] == "stable_trust"
@@ -101,6 +129,15 @@ def main() -> None:
     assert "selective_blindness" in misplaced["report_tags"]
     assert misplaced["trust_calibration"] < accurate["trust_calibration"]
     _assert_score_range(misplaced)
+
+    deception_input, deception_delta = _aggregate_interpretation(misplaced)
+    assert deception_input["truth_harm_level"] >= 5
+    assert deception_input["deception_level"] >= 5
+    assert deception_delta.trust_delta < 0
+    assert (
+        "deception_risk" in deception_delta.report_tags
+        or "trust_damage_event" in deception_delta.report_tags
+    )
 
     no_trace = _concealment_event("suspect_problem")
     no_trace["observable_traces"] = {}
