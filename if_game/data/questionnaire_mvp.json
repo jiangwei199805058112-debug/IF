@@ -1,11 +1,13 @@
 {
   "questionnaire_meta": {
     "id": "if_questionnaire_mvp",
-    "version": "0.2",
-    "title": "IF 问卷 MVP 25题快速版配置",
+    "version": "0.3",
+    "title": "IF 问卷 MVP 29题快速版配置",
     "source_docs": [
       "docs/design/18_super_realistic_question_bank.md",
-      "docs/design/24_questionnaire_json_schema.md"
+      "docs/design/24_questionnaire_json_schema.md",
+      "docs/design/28_questionnaire_communication_disclosure_module.md",
+      "docs/design/39_questionnaire_dimension_alias_mapping.md"
     ],
     "default_mode": "quick",
     "supported_modes": ["quick"],
@@ -76,6 +78,29 @@
         "attachment_vulnerability_fear",
         "attachment_reliance_comfort",
         "attachment_repair_receptivity"
+      ]
+    },
+    {
+      "id": "communication_disclosure",
+      "title": "沟通与表露",
+      "order": 4,
+      "description": "轻量补充自我表露、回应性需求、隐私透明边界和表露对称性。",
+      "modes": ["quick"],
+      "target_question_ids": ["Q-COM-01", "Q-COM-05", "Q-COM-06", "Q-COM-10"],
+      "report_section_id": "communication_disclosure",
+      "primary_dimensions": [
+        "attachment_vulnerability_fear",
+        "self_acceptance",
+        "communication_directness",
+        "emotion_reassurance_need",
+        "attachment_closeness_need",
+        "desire_emotional_validation_hunger",
+        "digital_phone_privacy_need",
+        "info_transparency_preference",
+        "trust_privacy_trust",
+        "attachment_independence_need",
+        "boundary_double_standard",
+        "trust_suspicion_sensitivity"
       ]
     }
   ],
@@ -944,6 +969,162 @@
       },
       "confidence": {"enabled": true, "default": 65, "affects_weight": true},
       "report_tags": ["attachment_self_summary"]
+    },
+    {
+      "id": "Q-COM-01",
+      "module": "communication_disclosure",
+      "module_id": "communication_disclosure",
+      "title": "自我表露意愿",
+      "prompt": "当关系逐渐亲近后，你愿意主动说出自己的不安、过去经历或真实需求吗？",
+      "question_type": "forced_single",
+      "selection_mode": "forced_single",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "attachment_vulnerability_fear",
+        "self_acceptance",
+        "communication_directness"
+      ],
+      "options": [
+        {"id": "rarely_unless_asked", "value": "A", "label": "基本不会，除非被问到。"},
+        {"id": "partial_with_reserve", "value": "B", "label": "会说一部分，但会保留很多。"},
+        {"id": "conditional_safety", "value": "C", "label": "看对方反应，如果安全才说。"},
+        {"id": "shares_important", "value": "D", "label": "会主动分享重要经历和情绪。"},
+        {"id": "early_over_disclose", "value": "E", "label": "很容易一开始就说很多。"}
+      ],
+      "scoring": {
+        "base_weight": 0.9,
+        "evidence_quality": "self_report",
+        "dimension_effects": {
+          "rarely_unless_asked": {"attachment_vulnerability_fear": 7, "self_acceptance": -4, "communication_directness": -5},
+          "partial_with_reserve": {"attachment_vulnerability_fear": 3, "self_acceptance": -1, "communication_directness": -2},
+          "conditional_safety": {"attachment_vulnerability_fear": 1, "self_acceptance": 1, "communication_directness": 1},
+          "shares_important": {"attachment_vulnerability_fear": -6, "self_acceptance": 5, "communication_directness": 6},
+          "early_over_disclose": {"attachment_vulnerability_fear": -4, "self_acceptance": 3, "communication_directness": 7}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["self_disclosure_willingness"]
+    },
+    {
+      "id": "Q-COM-05",
+      "module": "communication_disclosure",
+      "module_id": "communication_disclosure",
+      "title": "回应性需求",
+      "prompt": "当你说出一件让你难过或不安的事时，你最希望对方怎么回应？",
+      "question_type": "primary_with_secondary",
+      "selection_mode": "primary_with_secondary",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "emotion_reassurance_need",
+        "attachment_closeness_need",
+        "desire_emotional_validation_hunger"
+      ],
+      "options": [
+        {"id": "listen_without_judgment", "value": "A", "label": "认真听，不急着评价。"},
+        {"id": "clear_comfort", "value": "B", "label": "给我明确安慰和陪伴。"},
+        {"id": "help_analyze", "value": "C", "label": "帮我分析解决办法。"},
+        {"id": "just_no_mocking", "value": "D", "label": "只要别嘲笑我就行。"},
+        {"id": "reciprocal_story", "value": "E", "label": "也分享他/她的类似经历。"},
+        {"id": "no_deep_probe", "value": "F", "label": "不希望对方追问太多。"}
+      ],
+      "scoring": {
+        "base_weight": 0.9,
+        "evidence_quality": "self_report",
+        "dimension_effects": {
+          "listen_without_judgment": {"emotion_reassurance_need": 3, "attachment_closeness_need": 3, "desire_emotional_validation_hunger": 5},
+          "clear_comfort": {"emotion_reassurance_need": 8, "attachment_closeness_need": 5, "desire_emotional_validation_hunger": 6},
+          "help_analyze": {"emotion_reassurance_need": -2, "attachment_closeness_need": 0, "desire_emotional_validation_hunger": -3},
+          "just_no_mocking": {"emotion_reassurance_need": 1, "attachment_closeness_need": -1, "desire_emotional_validation_hunger": -3},
+          "reciprocal_story": {"emotion_reassurance_need": 3, "attachment_closeness_need": 5, "desire_emotional_validation_hunger": 4},
+          "no_deep_probe": {"emotion_reassurance_need": -3, "attachment_closeness_need": -2, "desire_emotional_validation_hunger": -4}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["high_responsiveness_need"]
+    },
+    {
+      "id": "Q-COM-06",
+      "module": "communication_disclosure",
+      "module_id": "communication_disclosure",
+      "title": "哪些事情可以保留不说",
+      "prompt": "恋爱后，你认为哪些事情可以保留不说？请选择所有符合项，并标出你最坚持的一项。",
+      "question_type": "multi_with_primary",
+      "selection_mode": "multi_with_primary",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "digital_phone_privacy_need",
+        "info_transparency_preference",
+        "trust_privacy_trust",
+        "attachment_independence_need"
+      ],
+      "options": [
+        {"id": "ex_contact", "value": "A", "label": "和前任是否还有联系。"},
+        {"id": "past_relationship_details", "value": "B", "label": "过去恋爱经历细节。"},
+        {"id": "phone_chats", "value": "C", "label": "手机聊天内容。"},
+        {"id": "money_status", "value": "D", "label": "金钱情况。"},
+        {"id": "family_conflict", "value": "E", "label": "家庭矛盾。"},
+        {"id": "past_wrongdoing", "value": "F", "label": "曾经做错的事。"},
+        {"id": "opposite_sex_friends", "value": "G", "label": "当前异性朋友情况。"},
+        {"id": "relationship_complaints", "value": "H", "label": "心里对关系的不满。"},
+        {"id": "sexual_thoughts", "value": "I", "label": "性、欲望相关想法。"},
+        {"id": "full_transparency", "value": "J", "label": "基本都应该坦白。"}
+      ],
+      "scoring": {
+        "base_weight": 0.85,
+        "evidence_quality": "self_report",
+        "dimension_effects": {
+          "ex_contact": {"digital_phone_privacy_need": 2, "info_transparency_preference": -2, "trust_privacy_trust": 1, "attachment_independence_need": 2},
+          "past_relationship_details": {"digital_phone_privacy_need": 1, "info_transparency_preference": -3, "trust_privacy_trust": 2, "attachment_independence_need": 2},
+          "phone_chats": {"digital_phone_privacy_need": 8, "info_transparency_preference": -6, "trust_privacy_trust": 3, "attachment_independence_need": 4},
+          "money_status": {"digital_phone_privacy_need": 1, "info_transparency_preference": -4, "trust_privacy_trust": 1, "attachment_independence_need": 3},
+          "family_conflict": {"digital_phone_privacy_need": 1, "info_transparency_preference": -3, "trust_privacy_trust": 2, "attachment_independence_need": 3},
+          "past_wrongdoing": {"digital_phone_privacy_need": 1, "info_transparency_preference": -5, "trust_privacy_trust": -2, "attachment_independence_need": 2},
+          "opposite_sex_friends": {"digital_phone_privacy_need": 2, "info_transparency_preference": -1, "trust_privacy_trust": -1, "attachment_independence_need": 2},
+          "relationship_complaints": {"digital_phone_privacy_need": 1, "info_transparency_preference": -2, "trust_privacy_trust": -1, "attachment_independence_need": 1},
+          "sexual_thoughts": {"digital_phone_privacy_need": 5, "info_transparency_preference": -4, "trust_privacy_trust": 2, "attachment_independence_need": 4},
+          "full_transparency": {"digital_phone_privacy_need": -8, "info_transparency_preference": 8, "trust_privacy_trust": -3, "attachment_independence_need": -4}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["privacy_boundary_preference"]
+    },
+    {
+      "id": "Q-COM-10",
+      "module": "communication_disclosure",
+      "module_id": "communication_disclosure",
+      "title": "自己表露 vs 希望对方表露",
+      "prompt": "请分别评估：你通常愿意向对方表露多少私人内容？你希望对方向你表露多少私人内容？",
+      "question_type": "axis_2d",
+      "selection_mode": "axis_2d",
+      "required": true,
+      "allow_skip": false,
+      "modes": ["quick"],
+      "dimensions": [
+        "attachment_vulnerability_fear",
+        "info_transparency_preference",
+        "boundary_double_standard",
+        "trust_suspicion_sensitivity"
+      ],
+      "axis": {
+        "x": {"min": 0, "max": 100, "left_label": "自己几乎不说", "right_label": "自己很多都愿意说"},
+        "y": {"min": 0, "max": 100, "left_label": "对方可以保留很多", "right_label": "希望对方尽量坦白"}
+      },
+      "scoring": {
+        "base_weight": 0.9,
+        "evidence_quality": "self_report",
+        "dimension_effects": {
+          "axis_x": {"attachment_vulnerability_fear": -10, "info_transparency_preference": 2, "boundary_double_standard": -4},
+          "axis_y": {"info_transparency_preference": 10, "boundary_double_standard": 4, "trust_suspicion_sensitivity": 4}
+        }
+      },
+      "confidence": {"enabled": true, "default": 70, "affects_weight": true},
+      "report_tags": ["disclosure_asymmetry"]
     }
   ],
   "scoring": {

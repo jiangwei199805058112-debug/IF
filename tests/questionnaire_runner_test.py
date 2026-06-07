@@ -44,6 +44,10 @@ RAW_ANSWERS = {
     "Q025": "2,1,4",
     "Q026": "80",
     "Q030": "1,3,4",
+    "Q-COM-01": "1",
+    "Q-COM-05": "2,1",
+    "Q-COM-06": "10,1,7",
+    "Q-COM-10": "30,90",
 }
 
 
@@ -64,7 +68,7 @@ def _assert_invalid(question: dict, raw_input: str) -> None:
 
 def main() -> None:
     config = load_mvp_questionnaire()
-    assert len(config["questions"]) == 25
+    assert len(config["questions"]) == 29
     assert set(RAW_ANSWERS) == {question["id"] for question in config["questions"]}
 
     forced_single = build_answer_from_input(_question_by_id(config, "Q001"), "1")
@@ -91,10 +95,23 @@ def main() -> None:
         "hides_needs",
     ]
 
+    communication_multi = build_answer_from_input(_question_by_id(config, "Q-COM-06"), "10,1,7")
+    assert communication_multi["primary_choice"] == "full_transparency"
+    assert communication_multi["selected_choices"] == [
+        "full_transparency",
+        "ex_contact",
+        "opposite_sex_friends",
+    ]
+
+    communication_axis = build_answer_from_input(_question_by_id(config, "Q-COM-10"), "30,90")
+    assert communication_axis["axis_x"] == 30
+    assert communication_axis["axis_y"] == 90
+
     _assert_invalid(_question_by_id(config, "Q001"), "1,2")
     _assert_invalid(_question_by_id(config, "Q019"), "101")
     _assert_invalid(_question_by_id(config, "Q018"), "50")
     _assert_invalid(_question_by_id(config, "Q030"), "99")
+    _assert_invalid(_question_by_id(config, "Q-COM-06"), "11")
 
     parsed_answers = [
         build_answer_from_input(question, RAW_ANSWERS[question["id"]])

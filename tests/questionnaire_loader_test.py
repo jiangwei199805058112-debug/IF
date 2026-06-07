@@ -15,10 +15,11 @@ def main() -> None:
     questionnaire = load_mvp_questionnaire()
     questions = questionnaire["questions"]
 
-    assert len(questions) == 25
+    assert len(questions) == 29
 
     question_ids = [question["id"] for question in questions]
     assert len(question_ids) == len(set(question_ids))
+    assert {"Q-COM-01", "Q-COM-05", "Q-COM-06", "Q-COM-10"}.issubset(question_ids)
 
     for question in questions:
         assert question.get("selection_mode"), f"{question['id']} missing selection_mode"

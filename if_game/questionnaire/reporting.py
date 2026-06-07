@@ -88,6 +88,9 @@ def render_questionnaire_report(
             "## 亲密依恋摘要",
             _render_attachment_summary(dimension_scores),
             "",
+            "## 沟通表露摘要",
+            _render_communication_disclosure_summary(dimension_scores),
+            "",
             "## 风险提示",
             _render_risk_hint(dimension_scores),
             "",
@@ -177,6 +180,24 @@ def _render_attachment_summary(dimension_scores: dict[str, Any]) -> str:
     )
 
 
+def _render_communication_disclosure_summary(dimension_scores: dict[str, Any]) -> str:
+    directness = _score_for_dimension(dimension_scores, "communication_directness")
+    reassurance = _score_for_dimension(dimension_scores, "emotion_reassurance_need")
+    transparency = _score_for_dimension(dimension_scores, "info_transparency_preference")
+    phone_privacy = _score_for_dimension(dimension_scores, "digital_phone_privacy_need")
+    double_standard = _score_for_dimension(dimension_scores, "boundary_double_standard")
+
+    return "\n".join(
+        [
+            f"- 直接沟通：{score_to_level(directness)}，反映你是否倾向把需要和不安说清楚。",
+            f"- 回应性需求：{score_to_level(reassurance)}，反映脆弱表达后对安慰、陪伴和情绪确认的需要。",
+            f"- 透明期待：{score_to_level(transparency)}，反映你希望关系中信息公开到什么程度。",
+            f"- 手机隐私需求：{score_to_level(phone_privacy)}，反映你对聊天记录、相册和数字空间边界的重视。",
+            f"- 表露规则一致性风险：{score_to_level(double_standard)}，用于提示自己表露和期待对方表露之间是否可能不对称。",
+        ]
+    )
+
+
 def _render_risk_hint(dimension_scores: dict[str, Any]) -> str:
     risks: list[str] = []
 
@@ -188,6 +209,10 @@ def _render_risk_hint(dimension_scores: dict[str, Any]) -> str:
         risks.append("个人空间需求较高时，要提前协商联系规则，减少对方误读为不在意。")
     if _score_for_dimension(dimension_scores, "attachment_vulnerability_fear") >= 61:
         risks.append("压力下隐藏脆弱可能让对方误判你的真实需要，修复时建议先说明感受。")
+    if _score_for_dimension(dimension_scores, "info_transparency_preference") >= 61:
+        risks.append("透明期待较高时，需要把“必要坦白”和“正当隐私”提前协商清楚。")
+    if _score_for_dimension(dimension_scores, "boundary_double_standard") >= 61:
+        risks.append("如果自己保留较多、却要求对方高度坦白，关系中容易出现透明规则不一致。")
 
     if not risks:
         risks.append("当前 MVP 结果没有显示单一高风险方向，但证据仍来自自述题，后续行为会继续校准。")
