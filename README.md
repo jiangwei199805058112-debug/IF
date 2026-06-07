@@ -810,3 +810,11 @@ python tests/relationship_state_aggregator_test.py
 当前支持 `emotional_stability`、`jealousy`、`forgiveness`、`conflict_avoidance`、`communication_drive`、`revenge_tendency`、`attachment_anxiety`、`honesty_expectation`、`self_respect` 九个人格维度，缺失字段默认按 50 处理。输出包含 `reaction_type`、`intensity`、`public_conflict`、`relationship_delta`、`memory_candidate`、`explanation`、`followup_risk` 和 `tags`。
 
 本版本仍是旁路 MVP：不接主游戏循环，不做 UI，不新增依赖，不改旧存档结构。下一步建议接入真实试玩日志，观察同一事件下不同 NPC 反应是否符合人物设定，再逐步接入事件流。
+
+## v0.1.53 真实试玩日志观察 MVP
+
+新增 `if_game/playtest_observation.py` 和 `tests/playtest_observation_test.py`，用于把一次关系事件从玩家行为、NPC 人格、当前关系状态、长期记忆，到 NPC 反应决策、关系变化、解释文本和记忆候选记录为结构化观察日志。
+
+当前提供 `build_playtest_observation()` 和 `format_playtest_observation()`。日志会记录事件 ID/类型/标题/可见性/是否发现、NPC 人格快照、关系状态快照、长期记忆快照、NPC 反应类型/强度/公开冲突/后续风险、反应解释、关系变化、记忆候选、解释摘要和标签。
+
+本版本仍是旁路 MVP：不强行接入 `engine.py` 主循环，不做 UI，不新增依赖。下一步建议用真实试玩样例观察 NPC 反应是否符合人物设定，再决定是否接入事件流。
