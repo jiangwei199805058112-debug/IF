@@ -818,3 +818,11 @@ python tests/relationship_state_aggregator_test.py
 当前提供 `build_playtest_observation()` 和 `format_playtest_observation()`。日志会记录事件 ID/类型/标题/可见性/是否发现、NPC 人格快照、关系状态快照、长期记忆快照、NPC 反应类型/强度/公开冲突/后续风险、反应解释、关系变化、记忆候选、解释摘要和标签。
 
 本版本仍是旁路 MVP：不强行接入 `engine.py` 主循环，不做 UI，不新增依赖。下一步建议用真实试玩样例观察 NPC 反应是否符合人物设定，再决定是否接入事件流。
+
+## v0.1.54 批量试玩观察样例
+
+新增 `if_game/playtest_observation_samples.py` 和 `tests/playtest_observation_samples_test.py`，用于批量生成固定关系事件样例与五类 NPC 人格的观察日志，验证同一事件在不同人格下是否出现合理差异。
+
+默认样例包含高沟通、高嫉妒、高回避、高报复和高自尊五类人格，以及正向支持、轻微失约、隐藏手机边界、已发现半真半假、认真道歉和反复欺骗记忆六类 case。默认会生成 30 条旁路观察日志，并提供 reaction_type 分布和重点观察结论。
+
+本版本仍不接入 `engine.py` 主循环，不新增 UI，不引入依赖；它只作为 v0.1.52 NPC 反应决策和 v0.1.53 试玩观察日志的批量验证工具。
