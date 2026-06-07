@@ -774,3 +774,9 @@ python tests/relationship_state_aggregator_test.py
 在 `if_game/data/questionnaire_mvp.json` 中新增 Q-COM-01、Q-COM-05、Q-COM-06、Q-COM-10 四道沟通表露题，MVP 问卷从 25 题扩展为 29 题。
 
 新增题目只使用现有 runner/scoring 支持的题型，并将候选维度映射到 128 维正式 ID；报告层新增“沟通表露摘要”，用于呈现直接沟通、回应性需求、透明期待、手机隐私需求和表露规则一致性风险。本次不接 AI API，不做 UI，不扩展到 40-60 题，也不破坏当前 14 天控制台原型。
+
+## v0.1.48 关系系统代码落地复盘
+
+新增 `docs/context/2026-06-07_v0_1_48_relationship_code_landing_review.md`，复盘 v0.1.42-v0.1.47 中 aggregator、解释层适配器、冲突/交换事件样例和沟通表露问卷的代码落地情况。
+
+文档明确当前模块数据流、尚未接入主流程/14 天事件/试玩报告/长期记忆/问卷初始状态的边界，以及下一阶段推荐任务顺序。本次只更新文档，不修改 Python 代码，不修改问卷 JSON，不接 UI 或 AI API。
