@@ -742,3 +742,11 @@ python tests/relationship_state_aggregator_test.py
 ```
 
 本次仍不接 AI API，不做 UI，不接完整事件引擎，不修改问卷 JSON，也不破坏当前 14 天控制台原型。
+
+## v0.1.43 关系状态聚合器关键裁决测试
+
+补充 `tests/relationship_state_aggregator_test.py` 中的 aggregator 关键裁决用例，覆盖沉默/石墙、冲突修复、准确警觉、误会焦虑、隐私与欺骗、低痛苦与高快乐、高快乐与安全、公平比例以及同一事件不重复扣信任等规则。
+
+同步轻量扩展 `if_game/relationship_state_aggregator.py`，让预留的 `safety_delta`、`excitement_delta`、`fairness_delta` 能支持本轮方向性裁决测试。
+
+本次仍不接 AI API，不做 UI，不修改问卷 JSON，不接完整事件引擎，也不破坏当前 14 天控制台原型。

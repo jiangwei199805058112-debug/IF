@@ -60,14 +60,28 @@ def aggregate_relationship_event(event: Mapping[str, Any]) -> RelationshipStateD
     truth_harm = _score(event.get("truth_harm_level", 0))
     deception = _score(event.get("deception_level", 0))
     evidence = _score(event.get("evidence_chain_strength", 0))
+    interpretation_type = str(event.get("interpretation_type", "")).strip()
     interpretation_accuracy = str(event.get("interpretation_accuracy", "unknown"))
+    projection_bias = _score(event.get("projection_bias_effect", 0))
+    threat_bias = _score(event.get("threat_bias_effect", 0))
     perceived_responsiveness = _score(event.get("perceived_responsiveness", 0))
     conflict_escalation = _score(event.get("conflict_escalation_risk", 0))
+    active_listening = _score(event.get("active_listening_skill", 0))
     validation_skill = _score(event.get("validation_skill", 0))
     stonewalling = _score(event.get("stonewalling_level", 0))
     repair_quality = _score(event.get("repair_attempt_quality", 0))
     rewards_delta = _signed_score(event.get("relationship_rewards_delta", 0))
     costs_delta = _signed_score(event.get("relationship_costs_delta", 0))
+    approach_reward = _signed_score(event.get("approach_reward_delta", 0))
+    avoidance_pressure = _signed_score(event.get("avoidance_cost_pressure_delta", 0))
+    direct_excitement = _signed_score(event.get("relationship_excitement_delta", 0))
+    direct_safety = _signed_score(event.get("relationship_safety_delta", 0))
+    boredom = _signed_score(event.get("boredom_delta", 0))
+    perceived_equity = _signed_score(event.get("perceived_equity_delta", 0))
+    underbenefit = _signed_score(event.get("underbenefit_feeling_delta", 0))
+    overbenefit_guilt = _signed_score(event.get("overbenefit_guilt_delta", 0))
+    felt_appreciation = _signed_score(event.get("felt_appreciation_delta", 0))
+    taken_for_granted = _signed_score(event.get("taken_for_granted_delta", 0))
     privacy_conflict = _score(event.get("privacy_boundary_conflict", 0))
     occurrence_count = max(0, int(_score(event.get("occurrence_count", 0), high=100)))
     repair_status = str(event.get("repair_status", "")).strip()
@@ -116,10 +130,20 @@ def aggregate_relationship_event(event: Mapping[str, Any]) -> RelationshipStateD
         _add(tags, "privacy_boundary_conflict")
         reasons.append("privacy boundary conflict treated separately from deception")
 
-    if interpretation_accuracy in ACCURATE_ALERTNESS_VALUES:
+    inferred_accurate_alertness = (
+        interpretation_type == "suspicion" and evidence >= 7 and truth_harm >= 7
+    )
+    inferred_over_suspicion = (
+        interpretation_type == "suspicion"
+        and evidence <= 3
+        and truth_harm <= 3
+        and (projection_bias >= 7 or threat_bias >= 7)
+    )
+
+    if interpretation_accuracy in ACCURATE_ALERTNESS_VALUES or inferred_accurate_alertness:
         _add(tags, "accurate_alertness")
         reasons.append("suspicion is supported by the truth/evidence layer")
-    elif interpretation_accuracy in OVER_SUSPICION_VALUES:
+    elif interpretation_accuracy in OVER_SUSPICION_VALUES or inferred_over_suspicion:
         satisfaction -= 2
         stability -= 1
         _add(tags, "over_suspicion_pattern")
@@ -134,6 +158,12 @@ def aggregate_relationship_event(event: Mapping[str, Any]) -> RelationshipStateD
         repair += min(4, validation_skill * 0.35)
         intimacy += min(3, validation_skill * 0.25)
         reasons.append("validation skill improves repair chance")
+
+    if active_listening > 0:
+        repair += min(4, active_listening * 0.35)
+        intimacy += min(3, active_listening * 0.25)
+        _add(tags, "active_listener")
+        reasons.append("active listening improves repair chance")
 
     effective_timeout = timeout_repair_success or repair_status in {"repaired", "partially_repaired"}
     if stonewalling > 0 and not effective_timeout:
@@ -172,6 +202,85 @@ def aggregate_relationship_event(event: Mapping[str, Any]) -> RelationshipStateD
         satisfaction -= costs_delta * 0.6
         stability -= max(0, costs_delta) * 0.25
         reasons.append("relationship costs affect satisfaction/stability")
+
+    if approach_reward:
+        excitement += approach_reward * 0.6
+        satisfaction += max(0, approach_reward) * 0.25
+        intimacy += max(0, approach_reward) * 0.2
+        reasons.append("approach rewards affect excitement without implying safety")
+
+    if direct_excitement:
+        excitement += direct_excitement * 0.8
+        reasons.append("direct relationship excitement field applied")
+
+    if avoidance_pressure:
+        if avoidance_pressure > 0:
+            safety -= min(8, avoidance_pressure * 0.7)
+            stability -= min(5, avoidance_pressure * 0.35)
+            satisfaction -= min(4, avoidance_pressure * 0.25)
+            reasons.append("avoidance pressure lowers safety/stability")
+        else:
+            safety += min(5, abs(avoidance_pressure) * 0.5)
+            reasons.append("lower avoidance pressure can improve safety but not excitement")
+
+    if direct_safety:
+        safety += direct_safety * 0.8
+        reasons.append("direct relationship safety field applied")
+
+    if boredom:
+        if boredom > 0:
+            excitement -= min(8, boredom * 0.6)
+            satisfaction -= min(4, boredom * 0.3)
+            reasons.append("boredom lowers excitement/satisfaction")
+        else:
+            excitement += min(4, abs(boredom) * 0.3)
+            reasons.append("lower boredom can restore some excitement")
+
+    if avoidance_pressure < 0 and approach_reward <= 2 and boredom >= 5:
+        _add(tags, "safe_but_bored_pattern")
+        reasons.append("low threat is not treated as high excitement")
+
+    if approach_reward >= 7 and (avoidance_pressure >= 5 or conflict_escalation >= 5):
+        _add(tags, "risk_excitement_pattern")
+        reasons.append("high reward with high pressure is treated as risky excitement")
+
+    if perceived_equity:
+        fairness += perceived_equity * 0.7
+        reasons.append("perceived equity directly adjusts fairness")
+
+    if felt_appreciation:
+        fairness += felt_appreciation * 0.4
+        satisfaction += max(0, felt_appreciation) * 0.2
+        reasons.append("felt appreciation supports fairness/satisfaction")
+
+    if underbenefit > 0:
+        fairness -= min(8, underbenefit * 0.7)
+        satisfaction -= min(5, underbenefit * 0.35)
+        _add(tags, "underbenefit_sensitive")
+        reasons.append("underbenefit lowers fairness")
+
+    if taken_for_granted > 0:
+        fairness -= min(7, taken_for_granted * 0.6)
+        satisfaction -= min(5, taken_for_granted * 0.35)
+        _add(tags, "taken_for_granted_sensitive")
+        reasons.append("being taken for granted lowers fairness/satisfaction")
+
+    if overbenefit_guilt > 0:
+        fairness -= min(3, overbenefit_guilt * 0.2)
+        reasons.append("overbenefit guilt is tracked as a light fairness cost")
+
+    equity_ratio_delta = _equity_ratio_delta(event)
+    if equity_ratio_delta is not None:
+        if equity_ratio_delta < -0.2:
+            fairness += max(-5, equity_ratio_delta * 4)
+            _add(tags, "underbenefit_sensitive")
+            reasons.append("outcome-to-contribution ratio suggests underbenefit")
+        elif equity_ratio_delta > 0.2:
+            fairness += min(3, equity_ratio_delta * 2)
+            reasons.append("outcome-to-contribution ratio suggests overbenefit")
+        else:
+            fairness += 1
+            reasons.append("similar outcome-to-contribution ratios are treated as equitable")
 
     if pattern_key and occurrence_count >= 3:
         old_wound += min(6, occurrence_count - 2)
@@ -252,6 +361,18 @@ def _signed_score(value: Any, low: float = -10.0, high: float = 10.0) -> float:
         except (TypeError, ValueError):
             return 0.0
     return max(low, min(high, number))
+
+
+def _equity_ratio_delta(event: Mapping[str, Any]) -> float | None:
+    player_contribution = _score(event.get("player_contribution", 0), high=100)
+    player_outcome = _score(event.get("player_outcome", 0), high=100)
+    npc_contribution = _score(event.get("npc_contribution", 0), high=100)
+    npc_outcome = _score(event.get("npc_outcome", 0), high=100)
+    if min(player_contribution, player_outcome, npc_contribution, npc_outcome) <= 0:
+        return None
+    player_ratio = player_outcome / player_contribution
+    npc_ratio = npc_outcome / npc_contribution
+    return player_ratio - npc_ratio
 
 
 def _bounded_int(value: float, major_event: bool = False) -> int:

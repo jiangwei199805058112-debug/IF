@@ -43,7 +43,11 @@ def _assert_common_shape(delta: RelationshipStateDelta) -> None:
         assert -20 <= data[field_name] <= 20, field_name
 
 
-def main() -> None:
+def _assert_tag_absent(delta: RelationshipStateDelta, tag: str) -> None:
+    assert tag not in delta.report_tags
+
+
+def _test_common_shape_and_reserved_defaults() -> None:
     mild = aggregate_relationship_event(
         {
             "source_id": "npc_a",
@@ -62,6 +66,94 @@ def main() -> None:
     assert mild.fairness_delta == 0
     assert mild.dependence_delta == 0
 
+
+def _test_silence_is_not_always_stonewalling() -> None:
+    repaired_pause = aggregate_relationship_event(
+        {
+            "stonewalling_level": 0,
+            "communication_response_type": "processing_silence",
+            "timeout_repair_success": True,
+            "repair_attempt_quality": "high",
+        }
+    )
+    _assert_common_shape(repaired_pause)
+    assert repaired_pause.repair_chance_delta > 0
+    assert repaired_pause.old_wound_memory_delta <= 0
+    assert "repair_window_open" in repaired_pause.report_tags
+    _assert_tag_absent(repaired_pause, "stonewalling_pattern")
+
+
+def _test_stonewalling_is_high_harm_communication() -> None:
+    stonewalling = aggregate_relationship_event(
+        {
+            "source_id": "player",
+            "target_id": "npc_a",
+            "stonewalling_level": "high",
+            "timeout_repair_success": False,
+            "conflict_escalation_risk": "medium",
+        }
+    )
+    _assert_common_shape(stonewalling)
+    assert stonewalling.trust_delta < 0
+    assert stonewalling.satisfaction_delta < 0
+    assert stonewalling.repair_chance_delta < 0
+    assert stonewalling.old_wound_memory_delta > 0
+    assert "stonewalling_pattern" in stonewalling.report_tags
+    assert stonewalling.memory_notes
+
+
+def _test_conflict_can_be_repaired_successfully() -> None:
+    repaired_conflict = aggregate_relationship_event(
+        {
+            "conflict_escalation_risk": "medium",
+            "validation_skill": "high",
+            "active_listening_skill": "high",
+            "repair_attempt_quality": "high",
+        }
+    )
+    _assert_common_shape(repaired_conflict)
+    assert repaired_conflict.repair_chance_delta > 0
+    assert repaired_conflict.intimacy_delta >= 0
+    assert repaired_conflict.satisfaction_delta >= -3
+    assert "repair_capable" in repaired_conflict.report_tags
+    assert "active_listener" in repaired_conflict.report_tags
+
+
+def _test_suspicion_can_be_accurate_alertness() -> None:
+    accurate = aggregate_relationship_event(
+        {
+            "truth_type": "concealment",
+            "truth_harm_level": "high",
+            "deception_level": 0,
+            "evidence_chain_strength": "strong",
+            "interpretation_type": "suspicion",
+            "interpretation_accuracy": "accurate_alertness",
+        }
+    )
+    _assert_common_shape(accurate)
+    assert accurate.trust_delta < 0
+    assert "accurate_alertness" in accurate.report_tags
+    _assert_tag_absent(accurate, "over_suspicion_pattern")
+
+
+def _test_suspicion_can_be_misunderstanding_or_anxiety() -> None:
+    over_suspicion = aggregate_relationship_event(
+        {
+            "truth_harm_level": "low",
+            "evidence_chain_strength": "low",
+            "interpretation_type": "suspicion",
+            "projection_bias_effect": "high",
+            "threat_bias_effect": "high",
+        }
+    )
+    _assert_common_shape(over_suspicion)
+    assert over_suspicion.trust_delta >= -3
+    assert over_suspicion.satisfaction_delta < 0
+    assert "over_suspicion_pattern" in over_suspicion.report_tags
+    _assert_tag_absent(over_suspicion, "accurate_alertness")
+
+
+def _test_privacy_is_not_deception() -> None:
     privacy = aggregate_relationship_event(
         {
             "truth_type": "privacy_boundary",
@@ -73,13 +165,62 @@ def main() -> None:
     _assert_common_shape(privacy)
     assert privacy.trust_delta >= -3
     assert privacy.satisfaction_delta < 0
+    assert privacy.intimacy_delta < 0
     assert "privacy_boundary_conflict" in privacy.report_tags
+    _assert_tag_absent(privacy, "deception_risk")
 
+
+def _test_low_pain_is_not_high_pleasure() -> None:
+    safe_but_bored = aggregate_relationship_event(
+        {
+            "avoidance_cost_pressure_delta": -8,
+            "approach_reward_delta": 0,
+            "boredom_delta": "high",
+        }
+    )
+    _assert_common_shape(safe_but_bored)
+    assert safe_but_bored.safety_delta > 0
+    assert safe_but_bored.excitement_delta <= 0
+    assert safe_but_bored.intimacy_delta == 0
+    assert "safe_but_bored_pattern" in safe_but_bored.report_tags
+    _assert_tag_absent(safe_but_bored, "risk_excitement_pattern")
+
+
+def _test_high_pleasure_is_not_safety() -> None:
+    risky_excitement = aggregate_relationship_event(
+        {
+            "approach_reward_delta": "high",
+            "avoidance_cost_pressure_delta": "high",
+            "conflict_escalation_risk": "high",
+        }
+    )
+    _assert_common_shape(risky_excitement)
+    assert risky_excitement.excitement_delta > 0
+    assert risky_excitement.safety_delta < 0
+    assert risky_excitement.stability_delta < 0
+    assert "risk_excitement_pattern" in risky_excitement.report_tags
+
+
+def _test_fairness_is_not_fifty_fifty() -> None:
+    proportional_equity = aggregate_relationship_event(
+        {
+            "player_contribution": 70,
+            "player_outcome": 90,
+            "npc_contribution": 40,
+            "npc_outcome": 50,
+        }
+    )
+    _assert_common_shape(proportional_equity)
+    assert proportional_equity.fairness_delta >= 0
+    _assert_tag_absent(proportional_equity, "underbenefit_sensitive")
+
+
+def _test_same_event_does_not_duplicate_trust_loss() -> None:
     deception = aggregate_relationship_event(
         {
             "truth_type": "concealment",
-            "truth_harm_level": 9,
-            "deception_level": 9,
+            "truth_harm_level": 7,
+            "deception_level": 7,
             "evidence_chain_strength": "strong",
         }
     )
@@ -89,49 +230,25 @@ def main() -> None:
     assert "trust_damage_event" in deception.report_tags
     assert "deception_risk" in deception.report_tags
 
-    stonewalling = aggregate_relationship_event(
+    combined_pressure = aggregate_relationship_event(
         {
-            "source_id": "player",
-            "target_id": "npc_a",
-            "stonewalling_level": 8,
-            "conflict_escalation_risk": 6,
+            "truth_type": "concealment",
+            "truth_harm_level": 7,
+            "deception_level": 7,
+            "evidence_chain_strength": "strong",
+            "interpretation_type": "suspicion",
+            "interpretation_accuracy": "accurate_alertness",
+            "conflict_escalation_risk": "high",
         }
     )
-    _assert_common_shape(stonewalling)
-    assert stonewalling.repair_chance_delta < 0
-    assert stonewalling.old_wound_memory_delta > 0
-    assert "stonewalling_pattern" in stonewalling.report_tags
-    assert stonewalling.memory_notes
+    _assert_common_shape(combined_pressure)
+    assert combined_pressure.trust_delta >= deception.trust_delta
+    assert combined_pressure.trust_delta < 0
+    assert "trust_damage_event" in combined_pressure.report_tags
+    assert "accurate_alertness" in combined_pressure.report_tags
 
-    repaired = aggregate_relationship_event(
-        {
-            "stonewalling_level": 0,
-            "timeout_repair_success": True,
-            "repair_attempt_quality": 8,
-            "validation_skill": 7,
-        }
-    )
-    _assert_common_shape(repaired)
-    assert repaired.repair_chance_delta > 0
-    assert repaired.old_wound_memory_delta <= 0
-    assert "repair_capable" in repaired.report_tags
-    assert "stonewalling_pattern" not in repaired.report_tags
 
-    duplicated_pressure = aggregate_relationship_event(
-        {
-            "truth_type": "betrayal",
-            "truth_harm_level": 10,
-            "deception_level": 10,
-            "evidence_chain_strength": "conclusive",
-            "conflict_escalation_risk": 10,
-            "stonewalling_level": 10,
-        }
-    )
-    _assert_common_shape(duplicated_pressure)
-    assert duplicated_pressure.trust_delta >= -20
-    assert duplicated_pressure.trust_delta < 0
-    assert "trust_damage_event" in duplicated_pressure.report_tags
-
+def _test_repeated_events_write_pattern_memory() -> None:
     pattern = aggregate_relationship_event(
         {
             "pattern_key": "late_reply_inconsistency",
@@ -143,6 +260,21 @@ def main() -> None:
     assert pattern.old_wound_memory_delta > 0
     assert pattern.memory_notes
     assert "pattern_memory_risk" in pattern.report_tags
+
+
+def main() -> None:
+    _test_common_shape_and_reserved_defaults()
+    _test_silence_is_not_always_stonewalling()
+    _test_stonewalling_is_high_harm_communication()
+    _test_conflict_can_be_repaired_successfully()
+    _test_suspicion_can_be_accurate_alertness()
+    _test_suspicion_can_be_misunderstanding_or_anxiety()
+    _test_privacy_is_not_deception()
+    _test_low_pain_is_not_high_pleasure()
+    _test_high_pleasure_is_not_safety()
+    _test_fairness_is_not_fifty_fifty()
+    _test_same_event_does_not_duplicate_trust_loss()
+    _test_repeated_events_write_pattern_memory()
 
     print("relationship state aggregator test passed")
 
