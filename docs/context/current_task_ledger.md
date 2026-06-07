@@ -8,6 +8,8 @@
 - 小规模关系事件样例验证开始时 HEAD：`29c2ed3 docs: 更新关系系统最终验证账本`。
 - v0.1.52 关系事件样例链路验证开始时 HEAD：`29c2ed3 docs: 更新关系系统最终验证账本`。
 - v0.1.52 关系事件样例代码提交后 HEAD：`07568eb feat: 增加关系事件样例`。
+- v0.1.52 NPC人格驱动反应系统 MVP 开始时 HEAD：`01b1bc8 docs: 更新关系事件样例账本状态`。
+- v0.1.52 NPC人格驱动反应系统 MVP 代码提交后 HEAD：`44bb4b5 feat: 增加NPC人格驱动反应MVP`。
 - 重要版本号修正：README 已存在 `v0.1.48 关系系统代码落地复盘`，因此后续三个代码阶段统一顺延：
   - v0.1.49：aggregator 接入 14 天主流程。
   - v0.1.50：问卷结果转初始关系/人格修正。
@@ -15,9 +17,9 @@
 
 ## 2. 当前阶段
 
-- 阶段：v0.1.52 关系事件样例链路验证已实现、已测试、已提交并推送，当前仅同步本账本状态。
+- 阶段：v0.1.52 NPC人格驱动反应系统 MVP 已实现、已测试，当前同步 README 和本账本文档。
 - 已完成阶段 A / v0.1.49；已完成阶段 B / v0.1.50；阶段 C / v0.1.51 已完成；最终验证已完成。
-- 下一步代码阶段：无，不建议继续大改底层结构。
+- 下一步代码阶段：暂不大规模接入主循环；建议先接真实试玩日志观察 NPC 反应质量。
 - 下一步动作：提交并推送本账本同步，然后继续稳定观察。
 - 任意后续任务开始前，必须先读取 `docs/context/current_task_ledger.md`，再继续判断当前阶段和下一步动作。
 - 因当前对话已有上下文压缩摘要，已再次执行恢复流程中的必要读取动作：
@@ -105,6 +107,53 @@
 - 已新增 `tests/relationship_event_samples_test.py`，验证事件样例可进入 aggregator、interpretation adapter、RelationshipMemory 和玩家可见日志摘要。
 - 已轻量增强 `relationship_state_aggregator.py`，新增 `trust_building_delta` 输入，用于正向可靠行为带来的有限信任回升。
 - 已在 README 末尾追加 v0.1.52 简短说明。
+- 已新增 v0.1.52 NPC人格驱动反应系统 MVP 模块 `if_game/npc_reaction_decision.py`：
+  - 新增 `NPCReactionDecision` 输出结构，包含 `reaction_type`、`intensity`、`public_conflict`、`relationship_delta`、`memory_candidate`、`explanation`、`followup_risk`、`tags`。
+  - 新增 `decide_npc_reaction(event, personality, relationship_state, memories)`，支持 dict、dataclass/object、空输入和旧样例事件输入。
+  - 支持事件语义：`positive_support`、`minor_disappointment`、`privacy_boundary`、`deception`、`repair_attempt`、`neglect`、`betrayal_like`。
+  - 支持隐藏/私密且未发现事件不触发 `public_conflict`，只增加隐性张力、怀疑和后续风险。
+  - 支持长期记忆标签简单加权：`repeated_deception`、`reliable_support`、`unresolved_betrayal`、`repaired_after_conflict`、`boundary_violation`、`emotional_neglect`。
+  - 当前仍是旁路 MVP，暂未接入 `engine.py` 主流程。
+- 支持 NPC 人格维度：
+  - `emotional_stability`
+  - `jealousy`
+  - `forgiveness`
+  - `conflict_avoidance`
+  - `communication_drive`
+  - `revenge_tendency`
+  - `attachment_anxiety`
+  - `honesty_expectation`
+  - `self_respect`
+  - 缺失字段默认使用 50。
+- 支持 NPC 反应类型：
+  - `appreciate`
+  - `soften`
+  - `communicate`
+  - `forgive`
+  - `withdraw`
+  - `become_sad`
+  - `confront`
+  - `test_player`
+  - `cold_war`
+  - `passive_aggressive`
+  - `repair_attempt`
+  - `set_boundary`
+  - `record_grievance`
+  - `retaliate`
+  - `breakup_warning`
+- 已新增 `tests/npc_reaction_decision_test.py`，覆盖：
+  - 同一隐瞒异性约饭/欺骗事件下，不同 NPC 人格产生不同反应。
+  - 高沟通高宽容更倾向沟通、修复或原谅。
+  - 高嫉妒高焦虑更倾向质问或试探。
+  - 高回避更倾向退缩、难过或冷战。
+  - 高报复倾向只在已发现欺骗/背叛场景下进入 `retaliate`。
+  - 隐藏且未发现事件 `public_conflict` 必须为 `False`。
+  - 正向支持不会生成 `retaliate` 或 `breakup_warning`。
+  - `repeated_deception` 会提高强度或后续风险。
+  - 缺失人格字段、缺失关系字段、空记忆输入安全使用默认值。
+  - 推卸责任类修复不会被当成真正修复。
+- 已在 README 末尾追加 v0.1.52 NPC人格驱动反应系统 MVP 简短说明。
+- 当前仍不做 UI、不接 AI API、不新增依赖、不接第二章、不大规模改主循环。
 - 确认工作区在创建本文件前是干净的。
 - 确认最近提交：
   - `c6e068b docs: 更新当前任务账本状态`
@@ -124,12 +173,13 @@
 - 阶段 B / v0.1.50：已实现、已测试、已提交并推送。
 - 阶段 C / v0.1.51：已实现、已测试、已提交并推送。
 - 三阶段完成后的最终验证：已完成，最小清理和账本更新已提交并推送。
-- v0.1.52 关系事件样例链路验证：已实现、已测试、已提交并推送，账本同步待提交。
+- v0.1.52 关系事件样例链路验证：已实现、已测试、已提交并推送，账本同步已完成。
+- v0.1.52 NPC人格驱动反应系统 MVP：已实现、已测试，文档同步待提交。
 - 已为阶段 A / v0.1.49 和阶段 B / v0.1.50 更新测试；阶段 C 已进入。
 - 已更新 README 的 v0.1.49、v0.1.50 和 v0.1.51 版本说明。
 - v0.1.51 实现已提交并推送。
 - 关系系统当前进入稳定观察阶段；下一步不建议继续大改底层结构。
-- v0.1.52 后仍保持稳定观察阶段；后续建议继续通过真实试玩日志观察，不要立刻大改底层结构。
+- v0.1.52 NPC 反应系统后仍保持 MVP 观察阶段；后续建议接入真实试玩日志，观察 NPC 反应是否符合人物设定，再逐步接入事件流。
 
 ## 5. 禁止事项
 
@@ -241,6 +291,27 @@ git diff --check
 git status --short
 ```
 
+### v0.1.52：NPC人格驱动反应系统 MVP
+
+```powershell
+python tests/npc_reaction_decision_test.py
+python tests/relationship_event_samples_test.py
+python tests/relationship_memory_test.py
+python tests/relationship_state_aggregator_test.py
+python tests/relationship_interpretation_test.py
+python tests/smoke_test.py
+python tests/scenario_test.py
+python tests/reporting_test.py
+python scripts/check_questionnaire_dimension_ids.py
+python tests/questionnaire_loader_test.py
+python tests/questionnaire_scoring_test.py
+python tests/questionnaire_reporting_test.py
+python tests/questionnaire_runner_test.py
+python tests/questionnaire_initial_modifiers_test.py
+git diff --check
+git status --short
+```
+
 ## 8. 已运行测试结果
 
 - v0.1.49 已运行测试：
@@ -308,6 +379,23 @@ git status --short
   - `python tests/questionnaire_initial_modifiers_test.py`：通过，输出 `questionnaire initial modifiers test passed`。
   - `git diff --check`：通过，退出码 0；仅有 README、账本和本次修改 Python 文件的 LF/CRLF 提示。
   - `git status --short`：仅显示 README、账本、`relationship_state_aggregator.py`、新增 `relationship_event_samples.py` 和新增测试文件。
+- v0.1.52 NPC人格驱动反应系统 MVP 已运行测试：
+  - `python tests/npc_reaction_decision_test.py`：通过，输出 `npc reaction decision test passed`。
+  - `python tests/relationship_event_samples_test.py`：通过，输出 `relationship event samples test passed`。
+  - `python tests/relationship_memory_test.py`：通过，输出 `relationship memory test passed`。
+  - `python tests/relationship_state_aggregator_test.py`：通过，输出 `relationship state aggregator test passed`。
+  - `python tests/relationship_interpretation_test.py`：通过，输出 `relationship interpretation test passed`。
+  - `python tests/smoke_test.py`：通过，输出 `smoke test passed`。
+  - `python tests/scenario_test.py`：通过，输出 `scenario test passed`。
+  - `python tests/reporting_test.py`：通过，输出 `reporting test passed`。
+  - `python scripts/check_questionnaire_dimension_ids.py`：通过，未发现未识别维度 ID。
+  - `python tests/questionnaire_loader_test.py`：通过，输出 `questionnaire loader test passed`。
+  - `python tests/questionnaire_scoring_test.py`：通过，输出 `questionnaire scoring test passed`。
+  - `python tests/questionnaire_reporting_test.py`：通过，输出 `questionnaire reporting test passed`。
+  - `python tests/questionnaire_runner_test.py`：通过，输出 `questionnaire runner test passed`。
+  - `python tests/questionnaire_initial_modifiers_test.py`：通过，输出 `questionnaire initial modifiers test passed`。
+  - `git diff --check`：通过，退出码 0。
+  - `git status --short`：代码提交前仅显示新增 `if_game/npc_reaction_decision.py` 和 `tests/npc_reaction_decision_test.py`；代码已提交为 `44bb4b5`。
 
 ## 9. 已提交 commit
 
@@ -333,11 +421,15 @@ git status --short
   - `29c2ed3 docs: 更新关系系统最终验证账本`
 - v0.1.52 关系事件样例链路验证已提交：
   - `07568eb feat: 增加关系事件样例`
-- v0.1.52 账本同步待提交，计划提交信息：
-  - `docs: 更新关系事件样例账本状态`
+- v0.1.52 关系事件样例账本同步已提交：
+  - `01b1bc8 docs: 更新关系事件样例账本状态`
+- v0.1.52 NPC人格驱动反应系统 MVP 代码已提交：
+  - `44bb4b5 feat: 增加NPC人格驱动反应MVP`
+- v0.1.52 NPC人格驱动反应系统 MVP 文档同步待提交，计划提交信息：
+  - `docs: 更新NPC反应系统账本状态`
 
 ## 10. 下一步动作
 
-1. 提交并推送 `docs: 更新关系事件样例账本状态`。
-2. 后续继续通过真实试玩日志观察，不建议立刻大改底层结构。
-3. 不建议立即进入新的底层系统重构。
+1. 提交并推送 `docs: 更新NPC反应系统账本状态`。
+2. 后续接入真实试玩日志，观察同一事件下不同 NPC 反应是否符合人物设定。
+3. 再逐步接入事件流，不建议立即大改底层结构或接入复杂剧情库。

@@ -802,3 +802,11 @@ python tests/relationship_state_aggregator_test.py
 ## v0.1.52 关系事件样例链路验证
 
 新增 `if_game/relationship_event_samples.py` 和 `tests/relationship_event_samples_test.py`，提供少量正向信任、轻微信任损伤、隐私边界、矛盾修复和半真半假说明样例，用于验证事件行为、关系聚合、解释层、长期记忆和玩家可见日志摘要之间的轻量链路。本次仍不新增 UI、不改主流程、不扩展复杂剧情系统。
+
+## v0.1.52 NPC人格驱动反应系统 MVP
+
+新增 `if_game/npc_reaction_decision.py` 和 `tests/npc_reaction_decision_test.py`，用于根据玩家行为事件、NPC 轻量人格维度、当前关系状态、长期关系记忆和事件是否被发现，生成 NPC 的 MVP 反应决策。
+
+当前支持 `emotional_stability`、`jealousy`、`forgiveness`、`conflict_avoidance`、`communication_drive`、`revenge_tendency`、`attachment_anxiety`、`honesty_expectation`、`self_respect` 九个人格维度，缺失字段默认按 50 处理。输出包含 `reaction_type`、`intensity`、`public_conflict`、`relationship_delta`、`memory_candidate`、`explanation`、`followup_risk` 和 `tags`。
+
+本版本仍是旁路 MVP：不接主游戏循环，不做 UI，不新增依赖，不改旧存档结构。下一步建议接入真实试玩日志，观察同一事件下不同 NPC 反应是否符合人物设定，再逐步接入事件流。
