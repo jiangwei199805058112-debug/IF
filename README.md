@@ -798,3 +798,7 @@ python tests/relationship_state_aggregator_test.py
 新增 `if_game/relationship_memory.py` 和 `tests/relationship_memory_test.py`，让 aggregator 产生的旧伤、重复模式和修复信号可以转换为结构化 `RelationshipMemory`。
 
 本版本支持旧伤强度、重复模式归并、修复状态更新和轻量时间衰减；玩家可见摘要不会暴露 `truth_type`、`deception_level` 等隐藏真相。本次不新增数据库、不做完整存档、不做 UI，也不改变当前 14 天控制台原型玩法。
+
+## v0.1.52 关系事件样例链路验证
+
+新增 `if_game/relationship_event_samples.py` 和 `tests/relationship_event_samples_test.py`，提供少量正向信任、轻微信任损伤、隐私边界、矛盾修复和半真半假说明样例，用于验证事件行为、关系聚合、解释层、长期记忆和玩家可见日志摘要之间的轻量链路。本次仍不新增 UI、不改主流程、不扩展复杂剧情系统。

@@ -69,6 +69,7 @@ def aggregate_relationship_event(event: Mapping[str, Any]) -> RelationshipStateD
     truth_harm = _score(event.get("truth_harm_level", 0))
     deception = _score(event.get("deception_level", 0))
     evidence = _score(event.get("evidence_chain_strength", 0))
+    trust_building = _signed_score(event.get("trust_building_delta", 0))
     interpretation_type = str(event.get("interpretation_type", "")).strip()
     interpretation_accuracy = str(event.get("interpretation_accuracy", "unknown"))
     projection_bias = _score(event.get("projection_bias_effect", 0))
@@ -138,6 +139,14 @@ def aggregate_relationship_event(event: Mapping[str, Any]) -> RelationshipStateD
         if deception > 0 or harmful_truth:
             _add(tags, "deception_risk")
         reasons.append("truth/deception handled as the primary trust-impact rule")
+
+    if trust_building > 0:
+        trust += min(6, trust_building * 0.75)
+        safety += min(4, trust_building * 0.35)
+        reasons.append("specific reliable behavior can rebuild trust without rewriting old events")
+    elif trust_building < 0 and not any_truth_damage:
+        trust += max(-4, trust_building * 0.45)
+        reasons.append("minor reliability damage handled as bounded trust pressure")
 
     if privacy_conflict > 0 and not harmful_truth and deception <= 0 and truth_harm <= 3:
         trust -= min(2, privacy_conflict * 0.2)
