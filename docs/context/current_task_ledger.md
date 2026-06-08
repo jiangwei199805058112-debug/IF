@@ -2,7 +2,7 @@
 
 ## 1. 当前任务版本号
 
-- 当前账本任务：v0.1.55 开局问卷接入 14 天互动流程。
+- 当前账本任务：v0.1.56 问卷题型与输入校验修正。
 - 仓库当前 HEAD（v0.1.51 开始时）：`15edba2 docs: 更新v0.1.50任务账本状态`。
 - 三阶段最终验证开始时 HEAD：`190d4a5 docs: 更新v0.1.51任务账本状态`。
 - 小规模关系事件样例验证开始时 HEAD：`29c2ed3 docs: 更新关系系统最终验证账本`。
@@ -18,7 +18,9 @@
 - 问卷未接入互动开局待办记录后 HEAD：`b6eac2c docs: 记录问卷未接入互动开局待办`。
 - 问卷题型与输入校验待办记录后 HEAD：`ea964b2 docs: 记录问卷题型与输入校验待办`。
 - v0.1.55 开局问卷接入 14 天互动流程开始时 HEAD：`ea964b2`。
-- v0.1.55 开局问卷接入 14 天互动流程实现 commit：本次提交 `feat: 接入开局问卷初始倾向`。
+- v0.1.55 开局问卷接入 14 天互动流程实现 commit：`fbc7bdb feat: 接入开局问卷初始倾向`。
+- v0.1.56 问卷题型与输入校验修正开始时 HEAD：`fbc7bdb feat: 接入开局问卷初始倾向`。
+- v0.1.56 问卷题型与输入校验修正实现 commit：本次提交 `fix: 调整问卷题型与输入校验`。
 - 重要版本号修正：README 已存在 `v0.1.48 关系系统代码落地复盘`，因此后续三个代码阶段统一顺延：
   - v0.1.49：aggregator 接入 14 天主流程。
   - v0.1.50：问卷结果转初始关系/人格修正。
@@ -26,11 +28,11 @@
 
 ## 2. 当前阶段
 
-- 阶段：v0.1.55 已完成，当前准备提交并推送。
-- 本任务来自 `docs/context/2026-06-07_questionnaire_game_integration_backlog.md`。
+- 阶段：v0.1.56 问卷题型与输入校验修正已完成，本账本随实现提交同步。
+- 本任务来自 `docs/context/2026-06-07_questionnaire_input_and_question_type_backlog.md`。
 - 已完成阶段 A / v0.1.49；已完成阶段 B / v0.1.50；阶段 C / v0.1.51 已完成；最终验证已完成。
-- 下一步代码阶段：v0.1.56 问卷题型与输入校验修正。
-- 下一步动作：进入 v0.1.56 前先读取账本和对应 backlog，再做问卷题型与输入校验修正。
+- 下一步代码阶段：暂不进入新版本；继续根据真实问卷试玩反馈判断是否需要后续小修。
+- 下一步动作：继续真实问卷试玩观察是否还有题型或输入边界问题。
 - 任意后续任务开始前，必须先读取 `docs/context/current_task_ledger.md`，再继续判断当前阶段和下一步动作。
 - 因当前对话已有上下文压缩摘要，已再次执行恢复流程中的必要读取动作：
   - 已读取 README.md。
@@ -260,6 +262,7 @@
 - v0.1.52 NPC人格驱动反应系统 MVP：已实现、已测试、已提交并推送，账本同步已完成。
 - v0.1.53 真实试玩日志观察 MVP：已实现、已测试、已提交并推送，账本同步已完成。
 - v0.1.54 批量试玩观察样例：已实现、已测试，文档同步已提交。
+- v0.1.56 问卷题型与输入校验修正：已实现、已测试，随本次实现提交同步。
 - 已为阶段 A / v0.1.49 和阶段 B / v0.1.50 更新测试；阶段 C 已进入。
 - 已更新 README 的 v0.1.49、v0.1.50 和 v0.1.51 版本说明。
 - v0.1.51 实现已提交并推送。
@@ -586,6 +589,21 @@ git status --short
   - `python tests/scenario_test.py`：通过，输出 `scenario test passed`。
   - `python tests/reporting_test.py`：通过，输出 `reporting test passed`。
   - `git diff --check`：通过，退出码 0，仅有 LF/CRLF 提示。
+- 已完成 v0.1.56 问卷题型与输入校验修正：
+  - Q024“被别人依赖”已从 `forced_single` 改为 `primary_with_secondary`，允许 `1,5` 这类主反应 + 次反应输入。
+  - Q024 仍保留第一个有效选项作为主反应，后续有效选项作为次反应，不改成普通多选。
+  - 控制台选项题提示已明确支持数字或字母。
+  - 对 `1,2,,4`、`,4`、`,2` 这类多余逗号输入采用宽容处理，忽略空输入片段，并在控制台提示玩家确认。
+  - v0.1.55 开局问卷接入保持不变，独立问卷入口和 14 天互动流程仍可运行。
+- v0.1.56 已运行测试：
+  - `python scripts/check_questionnaire_dimension_ids.py`：通过，未发现未识别维度 ID。
+  - `python tests/questionnaire_loader_test.py`：通过，输出 `questionnaire loader test passed`。
+  - `python tests/questionnaire_scoring_test.py`：通过，输出 `questionnaire scoring test passed`。
+  - `python tests/questionnaire_reporting_test.py`：通过，输出 `questionnaire reporting test passed`。
+  - `python tests/questionnaire_runner_test.py`：通过，输出 `questionnaire runner test passed`。
+  - `python tests/questionnaire_initial_modifiers_test.py`：通过，输出 `questionnaire initial modifiers test passed`。
+  - `python tests/smoke_test.py`：通过，输出 `smoke test passed`。
+  - `git diff --check`：通过，退出码 0，仅有 LF/CRLF 提示。
 
 ## 9. 已提交 commit
 
@@ -630,10 +648,12 @@ git status --short
 - 问卷题型与输入校验待办已提交：
   - `ea964b2 docs: 记录问卷题型与输入校验待办`
 - v0.1.55 开局问卷接入 14 天互动流程实现提交：
-  - 本次提交 `feat: 接入开局问卷初始倾向`
+  - `fbc7bdb feat: 接入开局问卷初始倾向`
+- v0.1.56 问卷题型与输入校验修正实现提交：
+  - 本次提交 `fix: 调整问卷题型与输入校验`
 
 ## 10. 下一步动作
 
-1. v0.1.56 问卷题型与输入校验修正。
-2. 进入 v0.1.56 前先读取 `docs/context/current_task_ledger.md` 和对应 backlog。
-3. 保持不接 AI API、不做 UI、不扩展大型题库、不进入超出 v0.1.56 的范围。
+1. 继续用真实问卷试玩观察其他题目是否还有“单选但真实体验可并存”的问题。
+2. 继续观察控制台输入体验，特别是字母、分隔符、空输入和错误提示是否足够清楚。
+3. 后续如继续修正题型，仍保持小步修改、补测试，不扩展大型题库，不重写问卷系统。

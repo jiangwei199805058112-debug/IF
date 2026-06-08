@@ -41,7 +41,7 @@ RAW_ANSWERS = {
     "Q021": "3,1",
     "Q022": "85",
     "Q023": "2",
-    "Q024": "2",
+    "Q024": "1,5",
     "Q025": "2,1,4",
     "Q026": "80",
     "Q030": "1,3,4",
@@ -81,6 +81,23 @@ def main() -> None:
     assert primary_with_secondary["primary_choice"] == "ask_why"
     assert primary_with_secondary["secondary_choices"] == ["check_clues"]
 
+    q024 = _question_by_id(config, "Q024")
+    assert q024["selection_mode"] == "primary_with_secondary"
+    q024_primary_with_secondary = build_answer_from_input(q024, "1,5")
+    assert q024_primary_with_secondary["primary_choice"] == "feel_trusted"
+    assert q024_primary_with_secondary["secondary_choices"] == ["feel_more_secure"]
+    q024_letters = build_answer_from_input(q024, "A,E")
+    assert q024_letters == q024_primary_with_secondary
+    q024_extra_commas = build_answer_from_input(q024, "1,2,,4")
+    assert q024_extra_commas["primary_choice"] == "feel_trusted"
+    assert q024_extra_commas["secondary_choices"] == ["accept_with_boundary", "pressure_escape"]
+    q024_leading_comma = build_answer_from_input(q024, ",4")
+    assert q024_leading_comma["primary_choice"] == "pressure_escape"
+    assert q024_leading_comma["secondary_choices"] == []
+    q024_leading_comma_second = build_answer_from_input(q024, ",2")
+    assert q024_leading_comma_second["primary_choice"] == "accept_with_boundary"
+    assert q024_leading_comma_second["secondary_choices"] == []
+
     slider = build_answer_from_input(_question_by_id(config, "Q019"), "85")
     assert slider["slider_value"] == 85
 
@@ -113,6 +130,7 @@ def main() -> None:
     _assert_invalid(_question_by_id(config, "Q018"), "50")
     _assert_invalid(_question_by_id(config, "Q030"), "99")
     _assert_invalid(_question_by_id(config, "Q-COM-06"), "11")
+    _assert_invalid(q024, ",,")
 
     parsed_answers = [
         build_answer_from_input(question, RAW_ANSWERS[question["id"]])
@@ -134,6 +152,8 @@ def main() -> None:
     assert "IF 问卷 MVP 报告" in runner_report
     assert "游戏初始倾向修正摘要" in runner_report
     assert any("IF 问卷 MVP 控制台" in line for line in printed_lines)
+    assert any("选项序号/字母" in line for line in printed_lines)
+    assert any("A 或 A,E" in line for line in printed_lines)
 
     raw_inputs = iter(RAW_ANSWERS[question["id"]] for question in config["questions"])
     collected_lines: list[str] = []
@@ -146,6 +166,17 @@ def main() -> None:
     assert "IF 问卷 MVP 报告" in collected["report"]
     assert "游戏初始倾向修正摘要" in collected["report"]
     assert any("IF 问卷 MVP 控制台" in line for line in collected_lines)
+
+    q024_only_config = config | {"questions": [q024]}
+    collected_lines = []
+    collected = collect_questionnaire_result(
+        config=q024_only_config,
+        input_func=lambda _prompt: "1,5,,",
+        output_func=collected_lines.append,
+    )
+    assert collected["answers"][0]["primary_choice"] == "feel_trusted"
+    assert collected["answers"][0]["secondary_choices"] == ["feel_more_secure"]
+    assert any("已忽略空输入片段" in line for line in collected_lines)
 
     print("questionnaire runner test passed")
 

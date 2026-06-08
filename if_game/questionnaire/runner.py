@@ -13,6 +13,7 @@ InputFunc = Callable[[str], str]
 OutputFunc = Callable[[str], None]
 
 TOKEN_SPLIT_PATTERN = re.compile(r"[\s,，、;；|/：:]+")
+CHOICE_DELIMITERS = ",，、;；|/：:"
 
 
 class QuestionnaireRunnerInputError(ValueError):
@@ -53,7 +54,7 @@ def collect_questionnaire_result(
     questions = questionnaire.get("questions", [])
 
     output_func("IF 问卷 MVP 控制台")
-    output_func("请按题目提示输入选项序号或 0-100 数值。")
+    output_func("请按题目提示输入选项序号/字母或 0-100 数值。")
 
     answers: list[dict[str, Any]] = []
     for index, question in enumerate(questions, start=1):
@@ -87,6 +88,8 @@ def _read_answer(
     _print_question(question, index, total, output_func)
     while True:
         raw_input = input_func("请输入：")
+        if _should_warn_empty_choice_segment(question, raw_input):
+            output_func("提示：已忽略空输入片段，请确认第一个有效选项为主反应。")
         try:
             return build_answer_from_input(question, raw_input)
         except QuestionnaireRunnerInputError as error:
@@ -148,11 +151,11 @@ def _print_axis(question: dict[str, Any], output_func: OutputFunc) -> None:
 
 def _input_hint(selection_mode: Any) -> str:
     if selection_mode == "forced_single":
-        return "输入一个选项序号，例如：1"
+        return "输入一个选项序号或字母，例如：1 或 A"
     if selection_mode == "primary_with_secondary":
-        return "输入主选项序号，可追加次选项，例如：3 或 3,5"
+        return "输入主选项序号或字母，可追加次选项，例如：3 或 3,5；A 或 A,E。多余逗号会被忽略。"
     if selection_mode == "multi_with_primary":
-        return "输入多个选项序号，第一个视为主因，例如：1,3,4"
+        return "输入多个选项序号或字母，第一个视为主因，例如：1,3,4 或 A,C,D。多余逗号会被忽略。"
     if selection_mode == "slider":
         return "输入 0-100 的数值，例如：75"
     if selection_mode == "axis_2d":
@@ -233,6 +236,20 @@ def _split_tokens(raw_input: str) -> list[str]:
     if not tokens:
         raise QuestionnaireRunnerInputError("输入不能为空")
     return tokens
+
+
+def _should_warn_empty_choice_segment(question: dict[str, Any], raw_input: str) -> bool:
+    if question.get("selection_mode") not in {"primary_with_secondary", "multi_with_primary"}:
+        return False
+    if not isinstance(raw_input, str):
+        return False
+
+    stripped = raw_input.strip()
+    if not stripped:
+        return False
+    if stripped[0] in CHOICE_DELIMITERS or stripped[-1] in CHOICE_DELIMITERS:
+        return True
+    return bool(re.search(r"[,，、;；|/：:]\s*[,，、;；|/：:]", stripped))
 
 
 def _option_id_from_token(question: dict[str, Any], token: str) -> str:

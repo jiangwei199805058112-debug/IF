@@ -20,6 +20,9 @@ def main() -> None:
     question_ids = [question["id"] for question in questions]
     assert len(question_ids) == len(set(question_ids))
     assert {"Q-COM-01", "Q-COM-05", "Q-COM-06", "Q-COM-10"}.issubset(question_ids)
+    question_by_id = {question["id"]: question for question in questions}
+    assert question_by_id["Q024"]["selection_mode"] == "primary_with_secondary"
+    assert question_by_id["Q024"]["question_type"] == "primary_with_secondary"
 
     for question in questions:
         assert question.get("selection_mode"), f"{question['id']} missing selection_mode"

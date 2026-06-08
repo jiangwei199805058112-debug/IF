@@ -83,7 +83,12 @@ HIGH_NEED_ANSWERS = [
     },
     {"question_id": "Q022", "slider_value": 85, "confidence": 75},
     {"question_id": "Q023", "primary_choice": "careful_reliance", "confidence": 70},
-    {"question_id": "Q024", "primary_choice": "accept_with_boundary", "confidence": 70},
+    {
+        "question_id": "Q024",
+        "primary_choice": "feel_trusted",
+        "secondary_choices": ["feel_more_secure"],
+        "confidence": 70,
+    },
     {
         "question_id": "Q025",
         "primary_choice": "stable_meeting_contact",
@@ -160,7 +165,12 @@ LOW_NEED_ANSWERS = [
     {"question_id": "Q021", "primary_choice": "tell_directly", "secondary_choices": [], "confidence": 70},
     {"question_id": "Q022", "slider_value": 20, "confidence": 75},
     {"question_id": "Q023", "primary_choice": "natural_reliance", "confidence": 70},
-    {"question_id": "Q024", "primary_choice": "pressure_escape", "confidence": 70},
+    {
+        "question_id": "Q024",
+        "primary_choice": "pressure_escape",
+        "secondary_choices": ["will_get_tired"],
+        "confidence": 70,
+    },
     {
         "question_id": "Q025",
         "primary_choice": "keep_personal_space",
@@ -229,6 +239,21 @@ def main() -> None:
     assert (
         result["dimension_scores"]["info_transparency_preference"]
         != alternate_result["dimension_scores"]["info_transparency_preference"]
+    )
+
+    q024 = next(question for question in config["questions"] if question["id"] == "Q024")
+    q024_config = config | {"questions": [q024]}
+    q024_primary_only = score_questionnaire(
+        q024_config,
+        [{"question_id": "Q024", "primary_choice": "feel_trusted"}],
+    )
+    q024_with_secondary = score_questionnaire(
+        q024_config,
+        [{"question_id": "Q024", "primary_choice": "feel_trusted", "secondary_choices": ["feel_more_secure"]}],
+    )
+    assert (
+        q024_with_secondary["dimension_scores"]["boundary_dominance_need"]
+        > q024_primary_only["dimension_scores"]["boundary_dominance_need"]
     )
 
     print("questionnaire scoring test passed")
