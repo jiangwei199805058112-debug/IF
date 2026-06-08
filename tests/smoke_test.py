@@ -15,7 +15,6 @@ from if_game.engine import run_14_day_simulation
 from if_game.event_loader import load_day_flow, load_sample_characters, load_seed_events
 from if_game.main import _run_interactive_menu
 from if_game.questionnaire.loader import load_mvp_questionnaire
-from if_game.questionnaire.runner import run_questionnaire
 
 
 def _default_questionnaire_answer(question: dict) -> str:
@@ -66,20 +65,86 @@ def main() -> None:
     for token in forbidden_tokens:
         assert token not in transcript_text
     assert "关系状态变化" in transcript_text
+    assert "本局开局倾向" not in transcript_text
+
+    initial_modifiers = {
+        "reassurance_need_delta": 3,
+        "privacy_boundary_sensitivity_delta": 3,
+        "suspicion_sensitivity_delta": 3,
+    }
+    result_with_initial_modifiers = run_14_day_simulation(
+        "ambiguous",
+        "A",
+        scripted_choices=scripted_choices,
+        initial_modifiers=initial_modifiers,
+    )
+    modifier_transcript = "\n".join(result_with_initial_modifiers["transcript"])
+    assert "本局开局倾向" in modifier_transcript
+    assert "这些只是开局倾向" in modifier_transcript
+    for phrase in ["你有病", "你一定会", "你就是", "人格障碍", "病态"]:
+        assert phrase not in modifier_transcript
+    assert result_with_initial_modifiers["final_stage"] == result["final_stage"]
+    assert result_with_initial_modifiers["triggered_events"] == result["triggered_events"]
+    assert result_with_initial_modifiers["memory_summaries"] == result["memory_summaries"]
 
     questionnaire = load_mvp_questionnaire()
+    captured_run_kwargs: dict = {}
+
+    def fake_collect_questionnaire_result(input_func=input):
+        return {
+            "score_result": {
+                "dimension_scores": {
+                    "emotion_reassurance_need": 90,
+                    "digital_phone_privacy_need": 90,
+                },
+                "evidence_count": {
+                    "emotion_reassurance_need": 2,
+                    "digital_phone_privacy_need": 2,
+                },
+                "answered_questions": 2,
+                "total_questions": len(questionnaire["questions"]),
+                "completion_rate": 1.0,
+            }
+        }
+
+    def fake_run_14_day_simulation(*_args, **kwargs):
+        captured_run_kwargs.update(kwargs)
+        return {"transcript": ["本局开局倾向：", "- 遇到不确定回应时，开局更需要明确安抚和说明。"]}
+
+    menu_yes_inputs = iter(["1", "1", "2", "1"])
+    output = StringIO()
+    with patch("builtins.input", lambda _prompt="": next(menu_yes_inputs)):
+        with patch("if_game.main.collect_questionnaire_result", fake_collect_questionnaire_result):
+            with patch("if_game.main.run_14_day_simulation", fake_run_14_day_simulation):
+                with redirect_stdout(output):
+                    _run_interactive_menu()
+
+    menu_yes_output = output.getvalue()
+    assert "是否先回答问卷，生成本局初始倾向？" in menu_yes_output
+    assert "本局开局倾向" in menu_yes_output
+    assert captured_run_kwargs["initial_modifiers"]["reassurance_need_delta"] > 0
+    assert captured_run_kwargs["initial_modifiers"]["privacy_boundary_sensitivity_delta"] > 0
+    assert captured_run_kwargs["initial_modifiers"]["initial_modifier_summary"]
+
+    interactive_inputs = iter(["1", "", "2", "1", "", "", ""])
+    output = StringIO()
+    with patch("builtins.input", lambda _prompt="": next(interactive_inputs)):
+        with redirect_stdout(output):
+            _run_interactive_menu()
+
+    interactive_output = output.getvalue()
+    assert "是否先回答问卷，生成本局初始倾向？" in interactive_output
+    assert "IF 问卷 MVP 控制台" not in interactive_output
+    assert "本局开局倾向" not in interactive_output
+
     menu_inputs = iter(
         ["3"]
         + [_default_questionnaire_answer(question) for question in questionnaire["questions"]]
     )
     output = StringIO()
-    run_questionnaire_with_inputs = lambda: run_questionnaire(
-        input_func=lambda _prompt="": next(menu_inputs)
-    )
     with patch("builtins.input", lambda _prompt="": next(menu_inputs)):
-        with patch("if_game.main.run_questionnaire", run_questionnaire_with_inputs):
-            with redirect_stdout(output):
-                _run_interactive_menu()
+        with redirect_stdout(output):
+            _run_interactive_menu()
 
     menu_output = output.getvalue()
     assert "IF 问卷 MVP 控制台" in menu_output

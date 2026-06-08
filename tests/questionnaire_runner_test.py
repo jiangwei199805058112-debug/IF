@@ -12,6 +12,7 @@ from if_game.questionnaire.loader import load_mvp_questionnaire
 from if_game.questionnaire.runner import (
     QuestionnaireRunnerInputError,
     build_answer_from_input,
+    collect_questionnaire_result,
     run_questionnaire,
 )
 from if_game.questionnaire.scoring import score_questionnaire
@@ -133,6 +134,18 @@ def main() -> None:
     assert "IF 问卷 MVP 报告" in runner_report
     assert "游戏初始倾向修正摘要" in runner_report
     assert any("IF 问卷 MVP 控制台" in line for line in printed_lines)
+
+    raw_inputs = iter(RAW_ANSWERS[question["id"]] for question in config["questions"])
+    collected_lines: list[str] = []
+    collected = collect_questionnaire_result(
+        config=config,
+        input_func=lambda _prompt: next(raw_inputs),
+        output_func=collected_lines.append,
+    )
+    assert collected["score_result"]["answered_questions"] == len(config["questions"])
+    assert "IF 问卷 MVP 报告" in collected["report"]
+    assert "游戏初始倾向修正摘要" in collected["report"]
+    assert any("IF 问卷 MVP 控制台" in line for line in collected_lines)
 
     print("questionnaire runner test passed")
 

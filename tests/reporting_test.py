@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from if_game.engine import run_playtest_scenario
+from if_game.engine import run_14_day_simulation, run_playtest_scenario
 from if_game.event_loader import load_playtest_scenarios
 from if_game.reporting import format_summary_report, format_transcript, write_report
 
@@ -55,6 +55,22 @@ def main() -> None:
     assert "有效修复路径" in summary_report
     _assert_no_internal_values(transcript_report)
     _assert_no_internal_values(summary_report)
+
+    initial_result = run_14_day_simulation(
+        "ambiguous",
+        "A",
+        initial_modifiers={
+            "reassurance_need_delta": 3,
+            "privacy_boundary_sensitivity_delta": 3,
+            "suspicion_sensitivity_delta": 3,
+        },
+    )
+    initial_report = format_transcript(initial_result)
+    assert "本局开局倾向" in initial_report
+    assert "这些只是开局倾向" in initial_report
+    for phrase in ["你有病", "你一定会", "你就是", "人格障碍", "病态"]:
+        assert phrase not in initial_report
+    _assert_no_internal_values(initial_report)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         output_path = Path(temp_dir) / "test_report.txt"

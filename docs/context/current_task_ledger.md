@@ -2,7 +2,7 @@
 
 ## 1. 当前任务版本号
 
-- 当前账本任务：v0.1.54 批量试玩观察样例。
+- 当前账本任务：v0.1.55 开局问卷接入 14 天互动流程。
 - 仓库当前 HEAD（v0.1.51 开始时）：`15edba2 docs: 更新v0.1.50任务账本状态`。
 - 三阶段最终验证开始时 HEAD：`190d4a5 docs: 更新v0.1.51任务账本状态`。
 - 小规模关系事件样例验证开始时 HEAD：`29c2ed3 docs: 更新关系系统最终验证账本`。
@@ -14,6 +14,11 @@
 - v0.1.53 真实试玩日志观察 MVP 代码提交后 HEAD：`83fc03e feat: 增加真实试玩观察日志MVP`。
 - v0.1.54 批量试玩观察样例开始时 HEAD：`fca655e docs: 更新试玩观察日志账本状态`。
 - v0.1.54 批量试玩观察样例代码提交后 HEAD：`130a4b3 feat: 增加批量试玩观察样例`。
+- v0.1.54 批量试玩观察样例文档同步后 HEAD：`1fd86d5 docs: 更新批量试玩观察样例状态`。
+- 问卷未接入互动开局待办记录后 HEAD：`b6eac2c docs: 记录问卷未接入互动开局待办`。
+- 问卷题型与输入校验待办记录后 HEAD：`ea964b2 docs: 记录问卷题型与输入校验待办`。
+- v0.1.55 开局问卷接入 14 天互动流程开始时 HEAD：`ea964b2`。
+- v0.1.55 开局问卷接入 14 天互动流程实现 commit：本次提交 `feat: 接入开局问卷初始倾向`。
 - 重要版本号修正：README 已存在 `v0.1.48 关系系统代码落地复盘`，因此后续三个代码阶段统一顺延：
   - v0.1.49：aggregator 接入 14 天主流程。
   - v0.1.50：问卷结果转初始关系/人格修正。
@@ -21,10 +26,11 @@
 
 ## 2. 当前阶段
 
-- 阶段：v0.1.54 批量试玩观察样例已实现、已测试，当前同步 README 和本账本文档。
+- 阶段：v0.1.55 已完成，当前准备提交并推送。
+- 本任务来自 `docs/context/2026-06-07_questionnaire_game_integration_backlog.md`。
 - 已完成阶段 A / v0.1.49；已完成阶段 B / v0.1.50；阶段 C / v0.1.51 已完成；最终验证已完成。
-- 下一步代码阶段：暂不大规模接入主循环；建议继续用批量试玩观察样例检查 NPC 反应质量。
-- 下一步动作：提交并推送本账本同步，然后继续稳定观察。
+- 下一步代码阶段：v0.1.56 问卷题型与输入校验修正。
+- 下一步动作：进入 v0.1.56 前先读取账本和对应 backlog，再做问卷题型与输入校验修正。
 - 任意后续任务开始前，必须先读取 `docs/context/current_task_ledger.md`，再继续判断当前阶段和下一步动作。
 - 因当前对话已有上下文压缩摘要，已再次执行恢复流程中的必要读取动作：
   - 已读取 README.md。
@@ -253,7 +259,7 @@
 - v0.1.52 关系事件样例链路验证：已实现、已测试、已提交并推送，账本同步已完成。
 - v0.1.52 NPC人格驱动反应系统 MVP：已实现、已测试、已提交并推送，账本同步已完成。
 - v0.1.53 真实试玩日志观察 MVP：已实现、已测试、已提交并推送，账本同步已完成。
-- v0.1.54 批量试玩观察样例：已实现、已测试，文档同步待提交。
+- v0.1.54 批量试玩观察样例：已实现、已测试，文档同步已提交。
 - 已为阶段 A / v0.1.49 和阶段 B / v0.1.50 更新测试；阶段 C 已进入。
 - 已更新 README 的 v0.1.49、v0.1.50 和 v0.1.51 版本说明。
 - v0.1.51 实现已提交并推送。
@@ -557,6 +563,29 @@ git status --short
   - `python tests/questionnaire_initial_modifiers_test.py`：通过，输出 `questionnaire initial modifiers test passed`。
   - `git diff --check`：通过，退出码 0。
   - `git status --short`：代码提交前仅显示新增 `if_game/playtest_observation_samples.py` 和 `tests/playtest_observation_samples_test.py`；代码已提交为 `130a4b3`。
+- 已完成 v0.1.55 开局问卷接入 14 天互动流程：
+  - 主菜单第 3 项“回答问卷 MVP 快速版”仍作为独立入口保留。
+  - 选择“互动运行 14 天”后会提示是否先回答问卷，默认回车选择“否”。
+  - 选择“否”时不传入开局问卷修正，14 天旧流程保持兼容。
+  - 选择“是”时调用问卷收集流程，取得 `score_result`，再生成 `initial_modifiers` 和玩家可见摘要。
+  - `run_14_day_simulation()` 新增轻量参数 `initial_modifiers: dict | None = None`。
+  - transcript 开头会显示“本局开局倾向”，并说明这些只作为开局倾向，后续关键事件和重复行为会继续修正。
+  - 问卷修正不改写旧 14 天事件分支、结局判定或后续事件行为。
+  - 本次实现 commit：`feat: 接入开局问卷初始倾向`。
+- v0.1.55 已运行测试：
+  - `python scripts/check_questionnaire_dimension_ids.py`：通过，未发现未识别维度 ID。
+  - `python tests/questionnaire_loader_test.py`：通过，输出 `questionnaire loader test passed`。
+  - `python tests/questionnaire_scoring_test.py`：通过，输出 `questionnaire scoring test passed`。
+  - `python tests/questionnaire_reporting_test.py`：通过，输出 `questionnaire reporting test passed`。
+  - `python tests/questionnaire_runner_test.py`：通过，输出 `questionnaire runner test passed`。
+  - `python tests/questionnaire_initial_modifiers_test.py`：通过，输出 `questionnaire initial modifiers test passed`。
+  - `python tests/relationship_state_aggregator_test.py`：通过，输出 `relationship state aggregator test passed`。
+  - `python tests/relationship_interpretation_test.py`：通过，输出 `relationship interpretation test passed`。
+  - `python tests/relationship_memory_test.py`：通过，输出 `relationship memory test passed`。
+  - `python tests/smoke_test.py`：通过，输出 `smoke test passed`。
+  - `python tests/scenario_test.py`：通过，输出 `scenario test passed`。
+  - `python tests/reporting_test.py`：通过，输出 `reporting test passed`。
+  - `git diff --check`：通过，退出码 0，仅有 LF/CRLF 提示。
 
 ## 9. 已提交 commit
 
@@ -594,11 +623,17 @@ git status --short
   - `fca655e docs: 更新试玩观察日志账本状态`
 - v0.1.54 批量试玩观察样例代码已提交：
   - `130a4b3 feat: 增加批量试玩观察样例`
-- v0.1.54 批量试玩观察样例文档同步待提交，计划提交信息：
-  - `docs: 更新批量试玩观察样例状态`
+- v0.1.54 批量试玩观察样例文档同步已提交：
+  - `1fd86d5 docs: 更新批量试玩观察样例状态`
+- 问卷未接入互动开局待办已提交：
+  - `b6eac2c docs: 记录问卷未接入互动开局待办`
+- 问卷题型与输入校验待办已提交：
+  - `ea964b2 docs: 记录问卷题型与输入校验待办`
+- v0.1.55 开局问卷接入 14 天互动流程实现提交：
+  - 本次提交 `feat: 接入开局问卷初始倾向`
 
 ## 10. 下一步动作
 
-1. 提交并推送 `docs: 更新批量试玩观察样例状态`。
-2. 用真实试玩日志继续观察同一事件下不同 NPC 人格是否稳定产生合理差异。
-3. 如果后续样例出现异常反应，优先补样例和测试定位，再决定是否微调 NPC 反应规则；仍不建议立即大改主循环。
+1. v0.1.56 问卷题型与输入校验修正。
+2. 进入 v0.1.56 前先读取 `docs/context/current_task_ledger.md` 和对应 backlog。
+3. 保持不接 AI API、不做 UI、不扩展大型题库、不进入超出 v0.1.56 的范围。

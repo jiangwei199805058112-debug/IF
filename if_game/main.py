@@ -5,7 +5,11 @@ from typing import Any
 
 from .engine import run_14_day_simulation, run_all_playtest_scenarios, run_playtest_scenario
 from .event_loader import load_playtest_scenarios, load_sample_characters
-from .questionnaire.runner import run_questionnaire
+from .questionnaire.initial_modifiers import (
+    build_initial_relationship_modifiers,
+    format_initial_modifier_summary,
+)
+from .questionnaire.runner import collect_questionnaire_result, run_questionnaire
 from .reporting import format_transcript, write_report, write_scenario_summary
 
 
@@ -19,6 +23,11 @@ ENTRY_OPTIONS = [
     ("chatting", "正在聊天"),
     ("ambiguous", "暧昧中"),
     ("new_relationship", "刚恋爱"),
+]
+
+QUESTIONNAIRE_START_OPTIONS = [
+    ("yes", "是"),
+    ("no", "否"),
 ]
 
 
@@ -74,8 +83,20 @@ def _run_interactive_menu() -> None:
 
     if mode == "questionnaire":
         print()
-        run_questionnaire()
+        run_questionnaire(input_func=input)
         return
+
+    initial_modifiers: dict[str, Any] | None = None
+    questionnaire_start = _choose(
+        "是否先回答问卷，生成本局初始倾向？",
+        QUESTIONNAIRE_START_OPTIONS,
+        default_index=1,
+    )
+    if questionnaire_start == "yes":
+        print()
+        questionnaire_result = collect_questionnaire_result(input_func=input)
+        initial_modifiers = build_initial_relationship_modifiers(questionnaire_result["score_result"])
+        initial_modifiers["initial_modifier_summary"] = format_initial_modifier_summary(initial_modifiers)
 
     entry_mode = _choose("选择开局模式：", ENTRY_OPTIONS, default_index=1)
 
@@ -85,7 +106,13 @@ def _run_interactive_menu() -> None:
 
     print()
     print("开始 14 天模拟。事件日会提供测试分支和处理方式。")
-    result = run_14_day_simulation(entry_mode, profile_pair_id, interactive=True)
+    result = run_14_day_simulation(
+        entry_mode,
+        profile_pair_id,
+        interactive=True,
+        input_func=input,
+        initial_modifiers=initial_modifiers,
+    )
 
     print()
     print("----- 模拟记录 -----")

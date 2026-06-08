@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from if_game.engine import run_all_playtest_scenarios
+from if_game.engine import run_14_day_simulation, run_all_playtest_scenarios
 from if_game.event_loader import load_playtest_scenarios
 
 
@@ -71,6 +71,28 @@ def main() -> None:
             f"{scenario['id']}: {result['final_stage']} | "
             f"tags={','.join(result['review']['sub_tags'])}"
         )
+
+    scripted_choices = {
+        "MSG_001": {"branch_id": "MSG_001_B", "choice_tag": "ask_softly"},
+        "SOC_001": {"branch_id": "SOC_001_B", "choice_tag": "set_boundary"},
+        "CONFLICT_001": {"branch_id": "CONFLICT_001_C", "choice_tag": "private_talk"},
+    }
+    baseline = run_14_day_simulation("ambiguous", "A", scripted_choices=scripted_choices)
+    with_initial_modifiers = run_14_day_simulation(
+        "ambiguous",
+        "A",
+        scripted_choices=scripted_choices,
+        initial_modifiers={
+            "reassurance_need_delta": 4,
+            "privacy_boundary_sensitivity_delta": 3,
+            "suspicion_sensitivity_delta": 3,
+        },
+    )
+    assert "本局开局倾向" in "\n".join(with_initial_modifiers["transcript"])
+    assert with_initial_modifiers["final_stage"] == baseline["final_stage"]
+    assert with_initial_modifiers["triggered_events"] == baseline["triggered_events"]
+    assert with_initial_modifiers["memory_summaries"] == baseline["memory_summaries"]
+    assert with_initial_modifiers["relationship_delta_summaries"] == baseline["relationship_delta_summaries"]
 
     print("scenario test passed")
 

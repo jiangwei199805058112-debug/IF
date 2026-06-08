@@ -41,6 +41,14 @@ def run_questionnaire(
     input_func: InputFunc = input,
     output_func: OutputFunc = print,
 ) -> str:
+    return collect_questionnaire_result(config, input_func, output_func)["report"]
+
+
+def collect_questionnaire_result(
+    config: dict[str, Any] | None = None,
+    input_func: InputFunc = input,
+    output_func: OutputFunc = print,
+) -> dict[str, Any]:
     questionnaire = config if config is not None else load_mvp_questionnaire()
     questions = questionnaire.get("questions", [])
 
@@ -57,7 +65,12 @@ def run_questionnaire(
 
     output_func("")
     output_func(report)
-    return report
+    return {
+        "questionnaire": questionnaire,
+        "answers": answers,
+        "score_result": score_result,
+        "report": report,
+    }
 
 
 def main() -> None:

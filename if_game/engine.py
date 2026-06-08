@@ -16,6 +16,7 @@ from .relationship_flow_integration import (
     build_aggregator_input_from_event,
     format_relationship_delta_summary,
 )
+from .questionnaire.initial_modifiers import format_initial_modifier_summary
 from .relationship_state_aggregator import aggregate_relationship_event
 
 
@@ -105,6 +106,29 @@ def initialize_relationship(entry_mode: str, profile_pair: dict[str, Any]) -> Re
     state.transcript.append(f"开局：{stage}。样例组合：{state.pair_title}。")
     state.transcript.append(f"玩家：{player.display_name}；NPC：{npc.display_name}。")
     return state
+
+
+def _initial_modifier_summary(initial_modifiers: dict[str, Any] | None) -> list[str]:
+    if not initial_modifiers:
+        return []
+    summary = initial_modifiers.get("initial_modifier_summary")
+    if isinstance(summary, list):
+        return [line for line in summary if isinstance(line, str) and line]
+    return format_initial_modifier_summary(initial_modifiers)
+
+
+def _append_initial_modifier_summary(
+    state: RelationshipState,
+    initial_modifiers: dict[str, Any] | None,
+) -> list[str]:
+    summary = _initial_modifier_summary(initial_modifiers)
+    if not summary:
+        return []
+
+    state.transcript.append("本局开局倾向：")
+    for line in summary:
+        state.transcript.append(f"- {line}")
+    return summary
 
 
 def _apply_delta(state: RelationshipState, delta: OutcomeDelta) -> None:
@@ -462,6 +486,7 @@ def run_14_day_simulation(
     scripted_choices: dict[str, Any] | None = None,
     interactive: bool = False,
     input_func: Callable[[str], str] = input,
+    initial_modifiers: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     profiles = load_sample_characters()
     events = load_seed_events()
@@ -472,6 +497,7 @@ def run_14_day_simulation(
         raise KeyError(f"Unknown profile pair: {profile_pair_id}")
 
     state = initialize_relationship(entry_mode, pairs[profile_pair_id])
+    initial_modifier_summary = _append_initial_modifier_summary(state, initial_modifiers)
     for day_config in day_flow:
         run_day(state, day_config, events, scripted_choices, interactive, input_func)
 
@@ -496,6 +522,8 @@ def run_14_day_simulation(
         "memory_summaries": [entry.summary for entry in state.memory_entries],
         "relationship_aggregator_log": list(getattr(state, "relationship_aggregator_log", [])),
         "relationship_delta_summaries": list(getattr(state, "relationship_delta_summaries", [])),
+        "initial_modifiers": dict(initial_modifiers or {}),
+        "initial_modifier_summary": list(initial_modifier_summary),
         "triggered_events": list(dict.fromkeys(state.triggered_events)),
         "feedback_level": final_feedback.feedback_level,
         "active_hooks": list(dict.fromkeys(state.active_hooks)),
