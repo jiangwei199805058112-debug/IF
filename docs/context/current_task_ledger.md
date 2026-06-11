@@ -2,7 +2,7 @@
 
 ## 1. 当前任务版本号
 
-- 当前账本任务：v0.1.56 问卷题型与输入校验修正。
+- 当前账本任务：v0.1.58 14 天互动玩法壳层 MVP。
 - 仓库当前 HEAD（v0.1.51 开始时）：`15edba2 docs: 更新v0.1.50任务账本状态`。
 - 三阶段最终验证开始时 HEAD：`190d4a5 docs: 更新v0.1.51任务账本状态`。
 - 小规模关系事件样例验证开始时 HEAD：`29c2ed3 docs: 更新关系系统最终验证账本`。
@@ -21,6 +21,8 @@
 - v0.1.55 开局问卷接入 14 天互动流程实现 commit：`fbc7bdb feat: 接入开局问卷初始倾向`。
 - v0.1.56 问卷题型与输入校验修正开始时 HEAD：`fbc7bdb feat: 接入开局问卷初始倾向`。
 - v0.1.56 问卷题型与输入校验修正实现 commit：本次提交 `fix: 调整问卷题型与输入校验`。
+- v0.1.58 14 天互动玩法壳层 MVP 开始时 HEAD：`b7c1cf1 docs: 记录14天流程缺少游戏感待办`。
+- v0.1.58 14 天互动玩法壳层 MVP 实现 commit：本次提交 `feat: 增加14天互动玩法壳层`。
 - 重要版本号修正：README 已存在 `v0.1.48 关系系统代码落地复盘`，因此后续三个代码阶段统一顺延：
   - v0.1.49：aggregator 接入 14 天主流程。
   - v0.1.50：问卷结果转初始关系/人格修正。
@@ -28,11 +30,11 @@
 
 ## 2. 当前阶段
 
-- 阶段：v0.1.56 问卷题型与输入校验修正已完成，本账本随实现提交同步。
-- 本任务来自 `docs/context/2026-06-07_questionnaire_input_and_question_type_backlog.md`。
+- 阶段：v0.1.58 14 天互动玩法壳层 MVP 已完成，本账本随实现提交同步。
+- 本任务来自 `docs/context/2026-06-07_14_day_gameplay_feel_backlog.md`。
 - 已完成阶段 A / v0.1.49；已完成阶段 B / v0.1.50；阶段 C / v0.1.51 已完成；最终验证已完成。
-- 下一步代码阶段：暂不进入新版本；继续根据真实问卷试玩反馈判断是否需要后续小修。
-- 下一步动作：继续真实问卷试玩观察是否还有题型或输入边界问题。
+- 下一步代码阶段：暂不立即扩底层关系系统。
+- 下一步动作：真实试玩验证 14 天流程游戏感，不要立即扩底层。
 - 任意后续任务开始前，必须先读取 `docs/context/current_task_ledger.md`，再继续判断当前阶段和下一步动作。
 - 因当前对话已有上下文压缩摘要，已再次执行恢复流程中的必要读取动作：
   - 已读取 README.md。
@@ -263,6 +265,7 @@
 - v0.1.53 真实试玩日志观察 MVP：已实现、已测试、已提交并推送，账本同步已完成。
 - v0.1.54 批量试玩观察样例：已实现、已测试，文档同步已提交。
 - v0.1.56 问卷题型与输入校验修正：已实现、已测试，随本次实现提交同步。
+- v0.1.58 14 天互动玩法壳层 MVP：已实现、已测试，随本次实现提交同步。
 - 已为阶段 A / v0.1.49 和阶段 B / v0.1.50 更新测试；阶段 C 已进入。
 - 已更新 README 的 v0.1.49、v0.1.50 和 v0.1.51 版本说明。
 - v0.1.51 实现已提交并推送。
@@ -604,6 +607,23 @@ git status --short
   - `python tests/questionnaire_initial_modifiers_test.py`：通过，输出 `questionnaire initial modifiers test passed`。
   - `python tests/smoke_test.py`：通过，输出 `smoke test passed`。
   - `git diff --check`：通过，退出码 0，仅有 LF/CRLF 提示。
+- 已完成 v0.1.58 14 天互动玩法壳层 MVP：
+  - 新增 `if_game/daily_actions.py`，管理普通日行动、NPC 模板回应、氛围标签、轻量关系变化、每日状态头部和行动结果格式化。
+  - 14 天流程现在显示本轮目标；每个可互动日显示“氛围：”、对方主动性、你的不安和修复窗口。
+  - 普通日新增每日行动选择和 NPC 简短回应；第 4 / 9 / 13 天作为余波日承接前一关键事件选择。
+  - 氛围标签写入 `RelationshipState.atmosphere_tag`，连续等待 / 冷淡类行动会让后续头部变为降温或微妙。
+  - 第 7 天中期反馈包含当前氛围趋势、玩家行为模式和第 8 天前边界 / 信任铺垫。
+  - 问卷 `initial_modifiers` 继续显示，并在等待 / 观察类行动中影响玩家可见反馈措辞。
+  - 保留第 3 / 8 / 12 天关键事件，不重写 aggregator、RelationshipMemory 或问卷系统。
+- v0.1.58 已运行测试：
+  - `python tests/daily_actions_test.py`：通过，输出 `daily actions test passed`。
+  - `python tests/smoke_test.py`：通过，输出 `smoke test passed`。
+  - `python tests/scenario_test.py`：通过，输出 `scenario test passed`。
+  - `python tests/reporting_test.py`：通过，输出 `reporting test passed`。
+  - `python tests/relationship_state_aggregator_test.py`：通过，输出 `relationship state aggregator test passed`。
+  - `python tests/relationship_memory_test.py`：通过，输出 `relationship memory test passed`。
+  - `python tests/questionnaire_runner_test.py`：通过，输出 `questionnaire runner test passed`。
+  - `git diff --check`：通过，退出码 0，仅有 LF/CRLF 提示。
 
 ## 9. 已提交 commit
 
@@ -651,9 +671,11 @@ git status --short
   - `fbc7bdb feat: 接入开局问卷初始倾向`
 - v0.1.56 问卷题型与输入校验修正实现提交：
   - 本次提交 `fix: 调整问卷题型与输入校验`
+- v0.1.58 14 天互动玩法壳层 MVP 实现提交：
+  - 本次提交 `feat: 增加14天互动玩法壳层`
 
 ## 10. 下一步动作
 
-1. 继续用真实问卷试玩观察其他题目是否还有“单选但真实体验可并存”的问题。
-2. 继续观察控制台输入体验，特别是字母、分隔符、空输入和错误提示是否足够清楚。
-3. 后续如继续修正题型，仍保持小步修改、补测试，不扩展大型题库，不重写问卷系统。
+1. 真实试玩验证 14 天流程是否已经更像短篇恋爱互动 Demo，而不是关系规则测试器。
+2. 重点观察普通日行动、NPC 简短回应、氛围头部和余波日是否足够让玩家理解每天能做什么。
+3. 暂不立即扩底层关系系统；如继续迭代，优先根据试玩反馈小步调整每日行动和可见反馈。

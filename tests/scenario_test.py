@@ -36,6 +36,11 @@ def _assert_scenario_expectations(scenario: dict[str, Any], result: dict[str, An
         assert event_id in triggered_events, f"{scenario['id']} missing event {event_id}"
 
     transcript_text = "\n".join(result["transcript"])
+    assert "每日行动：" in transcript_text
+    assert "对方回应：" in transcript_text
+    assert "氛围：" in transcript_text
+    assert "第 14 天阶段结算" in transcript_text
+    assert len(result["daily_action_history"]) == 10
     for token in expected["forbidden_transcript_tokens"]:
         assert token not in transcript_text, f"{scenario['id']} leaked token {token}"
 

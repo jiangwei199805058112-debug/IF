@@ -50,6 +50,9 @@ def main() -> None:
     for token in REQUIRED_REPORT_TOKENS:
         assert token in transcript_report
     assert "关系状态变化" in transcript_report
+    assert "每日行动：" in transcript_report
+    assert "对方回应：" in transcript_report
+    assert "氛围：" in transcript_report
     assert "scenario_repair" not in transcript_report
     assert "final_stage:" not in summary_report
     assert "有效修复路径" in summary_report

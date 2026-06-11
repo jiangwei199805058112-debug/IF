@@ -2,6 +2,15 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
+from .daily_actions import (
+    derive_atmosphere_after_event,
+    format_aftershock_context,
+    format_daily_action_result,
+    format_daily_status_header,
+    format_midpoint_feedback,
+    get_daily_actions,
+    resolve_daily_action,
+)
 from .event_loader import load_day_flow, load_playtest_scenarios, load_sample_characters, load_seed_events
 from .models import (
     CharacterProfile,
@@ -49,6 +58,15 @@ ENTRY_STAGE = {
     "正在聊天": "正在聊天",
     "暧昧中": "暧昧中",
     "刚恋爱": "刚恋爱",
+}
+
+ENTRY_GOALS = {
+    "chatting": "正在聊天：看能否稳定聊天并进入暧昧。",
+    "ambiguous": "暧昧中：看能否确认关系或明确边界。",
+    "new_relationship": "刚恋爱：看能否处理早期不安和磨合。",
+    "正在聊天": "正在聊天：看能否稳定聊天并进入暧昧。",
+    "暧昧中": "暧昧中：看能否确认关系或明确边界。",
+    "刚恋爱": "刚恋爱：看能否处理早期不安和磨合。",
 }
 
 
@@ -105,6 +123,10 @@ def initialize_relationship(entry_mode: str, profile_pair: dict[str, Any]) -> Re
     )
     state.transcript.append(f"开局：{stage}。样例组合：{state.pair_title}。")
     state.transcript.append(f"玩家：{player.display_name}；NPC：{npc.display_name}。")
+    state.transcript.append("本轮目标：")
+    state.transcript.append("- 在 14 天内判断这段关系是否值得继续推进。")
+    state.transcript.append("- 你可以选择靠近、观察、谈边界、修复冲突或主动降温。")
+    state.transcript.append(f"- {ENTRY_GOALS.get(entry_mode, ENTRY_GOALS['ambiguous'])}")
     return state
 
 
@@ -155,6 +177,7 @@ def apply_event_branch(
     choice = _choice_map(event).get(choice_tag, {})
     choice_delta = OutcomeDelta.from_dict(choice.get("outcome_delta"))
     _apply_delta(state, choice_delta)
+    _record_event_resolution(state, event, branch, choice, choice_tag)
 
     for hook in branch.get("next_hooks", []):
         if hook not in state.active_hooks:
@@ -178,6 +201,12 @@ def apply_event_branch(
         state.transcript.append("关系状态变化：")
         for summary in summaries:
             state.transcript.append(f"- {summary}")
+    state.atmosphere_tag = derive_atmosphere_after_event(
+        str(event.get("event_id", "")),
+        str(branch.get("branch_id", "")),
+        str(choice_tag),
+        state.atmosphere_tag,
+    )
     return feedback
 
 
@@ -225,6 +254,72 @@ def maybe_write_memory(state: RelationshipState, event: dict[str, Any], branch: 
 def _append_unique(values: list[str], value: str) -> None:
     if value and value not in values:
         values.append(value)
+
+
+def _append_daily_header(state: RelationshipState, entry_mode: str) -> None:
+    atmosphere = str(getattr(state, "atmosphere_tag", "stable"))
+    state.atmosphere_history.append({"day": state.day, "atmosphere_tag": atmosphere})
+    for line in format_daily_status_header(state.day, entry_mode, atmosphere):
+        state.transcript.append(line)
+
+
+def _scripted_daily_action_key(scripted_choices: dict[str, Any] | None, day: int) -> str | None:
+    if not scripted_choices:
+        return None
+    daily_actions = scripted_choices.get("daily_actions", {})
+    if not isinstance(daily_actions, dict):
+        return None
+    value = daily_actions.get(day, daily_actions.get(str(day)))
+    return str(value) if value else None
+
+
+def _apply_daily_relationship_delta(state: RelationshipState, delta: dict[str, Any]) -> None:
+    for field in ("trust", "security", "pressure", "conflict", "disappointment", "flaw"):
+        if field not in delta:
+            continue
+        try:
+            value = int(delta[field])
+        except (TypeError, ValueError):
+            value = 0
+        if value:
+            setattr(state, field, _clamp(int(getattr(state, field)) + value))
+
+
+def _append_daily_action_history(
+    state: RelationshipState,
+    day: int,
+    action_key: str,
+    result: dict[str, Any],
+) -> None:
+    state.daily_action_history.append(
+        {
+            "day": day,
+            "action_key": action_key,
+            "action_label": str(result.get("action_label", "")),
+            "atmosphere_tag": str(result.get("atmosphere_tag", "")),
+            "context_tags": list(result.get("context_tags", [])),
+        }
+    )
+
+
+def _record_event_resolution(
+    state: RelationshipState,
+    event: dict[str, Any],
+    branch: dict[str, Any],
+    choice: dict[str, Any],
+    choice_tag: str,
+) -> None:
+    state.event_resolution_log.append(
+        {
+            "day": state.day,
+            "event_id": str(event.get("event_id", "")),
+            "event_title": str(event.get("title", "")),
+            "branch_id": str(branch.get("branch_id", "")),
+            "choice_tag": str(choice_tag),
+            "choice_label": str(choice.get("label", choice_tag)),
+            "memory_summary": str(branch.get("memory", {}).get("summary", "")),
+        }
+    )
 
 
 def _has_memory(state: RelationshipState, keywords: tuple[str, ...]) -> bool:
@@ -428,20 +523,58 @@ def run_day(
     scripted_choices: dict[str, Any] | None = None,
     interactive: bool = False,
     input_func: Callable[[str], str] = input,
+    initial_modifiers: dict[str, Any] | None = None,
 ) -> None:
     state.day = int(day_config["day"])
     state.transcript.append("")
     state.transcript.append(f"第 {state.day} 天：{day_config['default_rhythm']}")
+    _append_daily_header(state, state.stage)
     notes = day_config.get("notes")
     if notes:
         state.transcript.append(f"日程提示：{notes}")
 
-    if day_config.get("midpoint_feedback"):
-        feedback = generate_perceived_feedback(state)
-        state.transcript.append(f"第 7 天中期反馈：{feedback.visible_summary}")
-
     event_id = day_config.get("event_id")
     if not event_id:
+        if not day_config.get("stage_settlement"):
+            for line in format_aftershock_context(state.day, state.event_resolution_log):
+                state.transcript.append(line)
+
+            actions = get_daily_actions(
+                state.day,
+                state.stage,
+                state.profile_pair_id,
+                state.atmosphere_tag,
+                context_tags=list(state.active_hooks),
+            )
+            scripted_action_key = _scripted_daily_action_key(scripted_choices, state.day)
+            selected_action = actions[0]
+            if scripted_action_key:
+                selected_action = next(
+                    (action for action in actions if action["action_key"] == scripted_action_key),
+                    selected_action,
+                )
+            if interactive:
+                selected_action = _select_interactive("选择今天的行动：", actions, "label", input_func)
+
+            action_key = str(selected_action.get("action_key", ""))
+            action_result = resolve_daily_action(
+                action_key,
+                state.day,
+                state.stage,
+                state.profile_pair_id,
+                state.atmosphere_tag,
+                state,
+                initial_modifiers=initial_modifiers,
+            )
+            _apply_daily_relationship_delta(state, dict(action_result.get("relationship_delta", {})))
+            state.atmosphere_tag = str(action_result.get("atmosphere_tag", state.atmosphere_tag))
+            for line in format_daily_action_result(action_result):
+                state.transcript.append(line)
+            _append_daily_action_history(state, state.day, action_key, action_result)
+
+        if day_config.get("midpoint_feedback"):
+            for line in format_midpoint_feedback(state.atmosphere_tag, state.daily_action_history):
+                state.transcript.append(line)
         return
 
     event = _event_map(events)[event_id]
@@ -499,7 +632,7 @@ def run_14_day_simulation(
     state = initialize_relationship(entry_mode, pairs[profile_pair_id])
     initial_modifier_summary = _append_initial_modifier_summary(state, initial_modifiers)
     for day_config in day_flow:
-        run_day(state, day_config, events, scripted_choices, interactive, input_func)
+        run_day(state, day_config, events, scripted_choices, interactive, input_func, initial_modifiers)
 
     final_stage = resolve_stage(state)
     state.stage = final_stage
@@ -524,6 +657,9 @@ def run_14_day_simulation(
         "relationship_delta_summaries": list(getattr(state, "relationship_delta_summaries", [])),
         "initial_modifiers": dict(initial_modifiers or {}),
         "initial_modifier_summary": list(initial_modifier_summary),
+        "daily_action_history": list(state.daily_action_history),
+        "atmosphere_history": list(state.atmosphere_history),
+        "event_resolution_log": list(state.event_resolution_log),
         "triggered_events": list(dict.fromkeys(state.triggered_events)),
         "feedback_level": final_feedback.feedback_level,
         "active_hooks": list(dict.fromkeys(state.active_hooks)),

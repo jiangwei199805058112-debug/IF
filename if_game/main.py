@@ -105,7 +105,7 @@ def _run_interactive_menu() -> None:
     profile_pair_id = _choose("选择样例角色组合：", pair_options, default_index=0)
 
     print()
-    print("开始 14 天模拟。事件日会提供测试分支和处理方式。")
+    print("开始 14 天模拟。普通日可选择每日行动，关键事件日会提供处理方式。")
     result = run_14_day_simulation(
         entry_mode,
         profile_pair_id,

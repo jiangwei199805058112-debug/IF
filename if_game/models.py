@@ -150,3 +150,7 @@ class RelationshipState:
     perceived: PerceivedRelationshipState = field(default_factory=PerceivedRelationshipState)
     triggered_events: list[str] = field(default_factory=list)
     transcript: list[str] = field(default_factory=list)
+    atmosphere_tag: str = "stable"
+    atmosphere_history: list[dict[str, Any]] = field(default_factory=list)
+    daily_action_history: list[dict[str, Any]] = field(default_factory=list)
+    event_resolution_log: list[dict[str, Any]] = field(default_factory=list)

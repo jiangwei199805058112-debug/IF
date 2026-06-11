@@ -65,6 +65,13 @@ def main() -> None:
     for token in forbidden_tokens:
         assert token not in transcript_text
     assert "关系状态变化" in transcript_text
+    assert "本轮目标：" in transcript_text
+    assert "每日行动：" in transcript_text
+    assert "对方回应：" in transcript_text
+    assert "氛围：" in transcript_text
+    assert "余波日：" in transcript_text
+    assert "第 7 天中期反馈：" in transcript_text
+    assert "当前氛围趋势：" in transcript_text
     assert "本局开局倾向" not in transcript_text
 
     initial_modifiers = {
@@ -81,6 +88,7 @@ def main() -> None:
     modifier_transcript = "\n".join(result_with_initial_modifiers["transcript"])
     assert "本局开局倾向" in modifier_transcript
     assert "这些只是开局倾向" in modifier_transcript
+    assert "氛围：" in modifier_transcript
     for phrase in ["你有病", "你一定会", "你就是", "人格障碍", "病态"]:
         assert phrase not in modifier_transcript
     assert result_with_initial_modifiers["final_stage"] == result["final_stage"]
@@ -126,7 +134,7 @@ def main() -> None:
     assert captured_run_kwargs["initial_modifiers"]["privacy_boundary_sensitivity_delta"] > 0
     assert captured_run_kwargs["initial_modifiers"]["initial_modifier_summary"]
 
-    interactive_inputs = iter(["1", "", "2", "1", "", "", ""])
+    interactive_inputs = iter(["1", "", "2", "1"] + [""] * 20)
     output = StringIO()
     with patch("builtins.input", lambda _prompt="": next(interactive_inputs)):
         with redirect_stdout(output):
