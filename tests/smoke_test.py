@@ -95,6 +95,29 @@ def main() -> None:
     assert result_with_initial_modifiers["triggered_events"] == result["triggered_events"]
     assert result_with_initial_modifiers["memory_summaries"] == result["memory_summaries"]
 
+    immediate_inputs = iter([""] * 40)
+    immediate_output = StringIO()
+    with redirect_stdout(immediate_output):
+        interactive_result = run_14_day_simulation(
+            "ambiguous",
+            "A",
+            interactive=True,
+            input_func=lambda _prompt="": next(immediate_inputs),
+        )
+    immediate_text = immediate_output.getvalue()
+    assert "每日行动：" in immediate_text
+    assert "对方回应：" in immediate_text
+    assert "氛围变化：" in immediate_text
+    assert "你的感受：" in immediate_text
+    assert "你的选择：" in immediate_text
+    assert "记忆账本：" in immediate_text
+    assert "关系状态变化：" in immediate_text
+    assert "感知反馈：" in immediate_text
+    assert "按回车进入下一天。" in immediate_text
+    assert "第 14 天阶段结算" in immediate_text
+    assert immediate_text.index("每日行动：") < immediate_text.index("第 2 天：")
+    assert "按回车进入下一天。" not in "\n".join(interactive_result["transcript"])
+
     questionnaire = load_mvp_questionnaire()
     captured_run_kwargs: dict = {}
 
@@ -117,7 +140,10 @@ def main() -> None:
 
     def fake_run_14_day_simulation(*_args, **kwargs):
         captured_run_kwargs.update(kwargs)
-        return {"transcript": ["本局开局倾向：", "- 遇到不确定回应时，开局更需要明确安抚和说明。"]}
+        result = {"transcript": ["本局开局倾向：", "- 遇到不确定回应时，开局更需要明确安抚和说明。"]}
+        for line in result["transcript"]:
+            print(line)
+        return result
 
     menu_yes_inputs = iter(["1", "1", "2", "1"])
     output = StringIO()
@@ -134,7 +160,7 @@ def main() -> None:
     assert captured_run_kwargs["initial_modifiers"]["privacy_boundary_sensitivity_delta"] > 0
     assert captured_run_kwargs["initial_modifiers"]["initial_modifier_summary"]
 
-    interactive_inputs = iter(["1", "", "2", "1"] + [""] * 20)
+    interactive_inputs = iter(["1", "", "2", "1"] + [""] * 40)
     output = StringIO()
     with patch("builtins.input", lambda _prompt="": next(interactive_inputs)):
         with redirect_stdout(output):
@@ -144,6 +170,9 @@ def main() -> None:
     assert "是否先回答问卷，生成本局初始倾向？" in interactive_output
     assert "IF 问卷 MVP 控制台" not in interactive_output
     assert "本局开局倾向" not in interactive_output
+    assert "每日行动：" in interactive_output
+    assert "对方回应：" in interactive_output
+    assert "按回车进入下一天。" in interactive_output
 
     menu_inputs = iter(
         ["3"]

@@ -101,6 +101,33 @@ def _choice_map(event: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return result
 
 
+def emit_interactive_lines(lines: list[str], interactive: bool) -> None:
+    if not interactive:
+        return
+    for line in lines:
+        print(line)
+
+
+def _emit_new_transcript_lines(
+    state: RelationshipState,
+    start_index: int,
+    interactive: bool,
+) -> int:
+    emit_interactive_lines(state.transcript[start_index:], interactive)
+    return len(state.transcript)
+
+
+def _pause_for_next_day(
+    day: int,
+    interactive: bool,
+    input_func: Callable[[str], str],
+) -> None:
+    if not interactive or day >= 14:
+        return
+    emit_interactive_lines(["按回车进入下一天。"], True)
+    input_func("")
+
+
 def initialize_relationship(entry_mode: str, profile_pair: dict[str, Any]) -> RelationshipState:
     player = CharacterProfile.from_dict(profile_pair["player"])
     npc = CharacterProfile.from_dict(profile_pair["npc"])
@@ -526,6 +553,7 @@ def run_day(
     initial_modifiers: dict[str, Any] | None = None,
 ) -> None:
     state.day = int(day_config["day"])
+    day_start_index = len(state.transcript)
     state.transcript.append("")
     state.transcript.append(f"第 {state.day} 天：{day_config['default_rhythm']}")
     _append_daily_header(state, state.stage)
@@ -539,6 +567,7 @@ def run_day(
             for line in format_aftershock_context(state.day, state.event_resolution_log):
                 state.transcript.append(line)
 
+            result_start_index = _emit_new_transcript_lines(state, day_start_index, interactive)
             actions = get_daily_actions(
                 state.day,
                 state.stage,
@@ -575,6 +604,8 @@ def run_day(
         if day_config.get("midpoint_feedback"):
             for line in format_midpoint_feedback(state.atmosphere_tag, state.daily_action_history):
                 state.transcript.append(line)
+        _emit_new_transcript_lines(state, result_start_index if not day_config.get("stage_settlement") else day_start_index, interactive)
+        _pause_for_next_day(state.day, interactive, input_func)
         return
 
     event = _event_map(events)[event_id]
@@ -588,6 +619,7 @@ def run_day(
     branch_lookup = _branch_map(event)
     branch = branch_lookup.get(branch_id) or event.get("branches", [])[0]
 
+    result_start_index = _emit_new_transcript_lines(state, day_start_index, interactive)
     choices = event.get("choices", [])
     if interactive:
         prompt = "\n".join(
@@ -611,6 +643,8 @@ def run_day(
 
     feedback = apply_event_branch(state, event, branch, str(choice_tag or ""))
     state.transcript.append(f"感知反馈：{feedback.visible_summary}")
+    _emit_new_transcript_lines(state, result_start_index, interactive)
+    _pause_for_next_day(state.day, interactive, input_func)
 
 
 def run_14_day_simulation(
@@ -631,6 +665,7 @@ def run_14_day_simulation(
 
     state = initialize_relationship(entry_mode, pairs[profile_pair_id])
     initial_modifier_summary = _append_initial_modifier_summary(state, initial_modifiers)
+    _emit_new_transcript_lines(state, 0, interactive)
     for day_config in day_flow:
         run_day(state, day_config, events, scripted_choices, interactive, input_func, initial_modifiers)
 
@@ -639,6 +674,7 @@ def run_14_day_simulation(
     final_feedback = generate_perceived_feedback(state)
     review = build_relationship_review(state)
     visible_summary = f"第 14 天阶段结算：{final_stage}。{final_feedback.visible_summary}"
+    final_start_index = len(state.transcript)
     state.transcript.append("")
     state.transcript.append(visible_summary)
     if state.memory_entries:
@@ -647,6 +683,7 @@ def run_14_day_simulation(
             state.transcript.append(f"- 第 {entry.day} 天：{entry.summary}")
     else:
         state.transcript.append("本轮没有写入重大记忆。")
+    _emit_new_transcript_lines(state, final_start_index, interactive)
 
     return {
         "final_stage": final_stage,

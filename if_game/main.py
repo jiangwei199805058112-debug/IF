@@ -106,7 +106,7 @@ def _run_interactive_menu() -> None:
 
     print()
     print("开始 14 天模拟。普通日可选择每日行动，关键事件日会提供处理方式。")
-    result = run_14_day_simulation(
+    run_14_day_simulation(
         entry_mode,
         profile_pair_id,
         interactive=True,
@@ -115,9 +115,6 @@ def _run_interactive_menu() -> None:
     )
 
     print()
-    print("----- 模拟记录 -----")
-    for line in result["transcript"]:
-        print(line)
     print("----- 结束 -----")
     print("提醒：这是规则测试原型，不做 UI、存档、AI、完整经济系统、完整亲密系统或完整一年模拟。")
 

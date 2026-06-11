@@ -2,7 +2,7 @@
 
 ## 1. 当前任务版本号
 
-- 当前账本任务：v0.1.58 14 天互动玩法壳层 MVP。
+- 当前账本任务：v0.1.59 即时反馈与逐日交互修复。
 - 仓库当前 HEAD（v0.1.51 开始时）：`15edba2 docs: 更新v0.1.50任务账本状态`。
 - 三阶段最终验证开始时 HEAD：`190d4a5 docs: 更新v0.1.51任务账本状态`。
 - 小规模关系事件样例验证开始时 HEAD：`29c2ed3 docs: 更新关系系统最终验证账本`。
@@ -23,6 +23,8 @@
 - v0.1.56 问卷题型与输入校验修正实现 commit：本次提交 `fix: 调整问卷题型与输入校验`。
 - v0.1.58 14 天互动玩法壳层 MVP 开始时 HEAD：`b7c1cf1 docs: 记录14天流程缺少游戏感待办`。
 - v0.1.58 14 天互动玩法壳层 MVP 实现 commit：本次提交 `feat: 增加14天互动玩法壳层`。
+- v0.1.59 即时反馈与逐日交互修复开始时 HEAD：`846eca5 docs: 记录v0.1.58试玩反馈待办`。
+- v0.1.59 即时反馈与逐日交互修复实现 commit：本次提交 `fix: 增加14天互动即时反馈`。
 - 重要版本号修正：README 已存在 `v0.1.48 关系系统代码落地复盘`，因此后续三个代码阶段统一顺延：
   - v0.1.49：aggregator 接入 14 天主流程。
   - v0.1.50：问卷结果转初始关系/人格修正。
@@ -30,11 +32,11 @@
 
 ## 2. 当前阶段
 
-- 阶段：v0.1.58 14 天互动玩法壳层 MVP 已完成，本账本随实现提交同步。
-- 本任务来自 `docs/context/2026-06-07_14_day_gameplay_feel_backlog.md`。
+- 阶段：v0.1.59 即时反馈与逐日交互修复已完成，本账本随实现提交同步。
+- 本任务来自 `docs/context/2026-06-12_v0_1_58_playtest_feedback_backlog.md`。
 - 已完成阶段 A / v0.1.49；已完成阶段 B / v0.1.50；阶段 C / v0.1.51 已完成；最终验证已完成。
-- 下一步代码阶段：暂不立即扩底层关系系统。
-- 下一步动作：真实试玩验证 14 天流程游戏感，不要立即扩底层。
+- 下一步代码阶段：v0.1.60 开局关系选择拆分，或 v0.1.61 玩家生活行动层 MVP。
+- 下一步动作：优先根据试玩反馈拆分开局关系选择；随后补玩家生活行动层，不要立即扩底层关系系统。
 - 任意后续任务开始前，必须先读取 `docs/context/current_task_ledger.md`，再继续判断当前阶段和下一步动作。
 - 因当前对话已有上下文压缩摘要，已再次执行恢复流程中的必要读取动作：
   - 已读取 README.md。
@@ -266,6 +268,7 @@
 - v0.1.54 批量试玩观察样例：已实现、已测试，文档同步已提交。
 - v0.1.56 问卷题型与输入校验修正：已实现、已测试，随本次实现提交同步。
 - v0.1.58 14 天互动玩法壳层 MVP：已实现、已测试，随本次实现提交同步。
+- v0.1.59 即时反馈与逐日交互修复：已实现、已测试，随本次实现提交同步。
 - 已为阶段 A / v0.1.49 和阶段 B / v0.1.50 更新测试；阶段 C 已进入。
 - 已更新 README 的 v0.1.49、v0.1.50 和 v0.1.51 版本说明。
 - v0.1.51 实现已提交并推送。
@@ -624,6 +627,21 @@ git status --short
   - `python tests/relationship_memory_test.py`：通过，输出 `relationship memory test passed`。
   - `python tests/questionnaire_runner_test.py`：通过，输出 `questionnaire runner test passed`。
   - `git diff --check`：通过，退出码 0，仅有 LF/CRLF 提示。
+- 已完成 v0.1.59 即时反馈与逐日交互修复：
+  - `run_14_day_simulation(interactive=True)` 现在会在开局、每日上下文、普通日行动结果、关键事件结算和第 14 天阶段结算时即时输出。
+  - 普通日选择后立即显示“每日行动 / 对方回应 / 氛围变化 / 你的感受”。
+  - 关键事件选择后立即显示“你的选择 / 记忆账本 / 关系状态变化 / 感知反馈”。
+  - 每天结束后提示“按回车进入下一天。”，非互动模式不等待输入。
+  - transcript 仍完整保留，报告和场景测试继续使用返回结果，不依赖即时输出。
+- v0.1.59 已运行测试：
+  - `python tests/daily_actions_test.py`：通过，输出 `daily actions test passed`。
+  - `python tests/smoke_test.py`：通过，输出 `smoke test passed`。
+  - `python tests/scenario_test.py`：通过，输出 `scenario test passed`。
+  - `python tests/reporting_test.py`：通过，输出 `reporting test passed`。
+  - `python tests/relationship_state_aggregator_test.py`：通过，输出 `relationship state aggregator test passed`。
+  - `python tests/relationship_memory_test.py`：通过，输出 `relationship memory test passed`。
+  - `python tests/questionnaire_runner_test.py`：通过，输出 `questionnaire runner test passed`。
+  - `git diff --check`：通过，退出码 0，仅有 LF/CRLF 提示。
 
 ## 9. 已提交 commit
 
@@ -673,9 +691,11 @@ git status --short
   - 本次提交 `fix: 调整问卷题型与输入校验`
 - v0.1.58 14 天互动玩法壳层 MVP 实现提交：
   - 本次提交 `feat: 增加14天互动玩法壳层`
+- v0.1.59 即时反馈与逐日交互修复实现提交：
+  - 本次提交 `fix: 增加14天互动即时反馈`
 
 ## 10. 下一步动作
 
-1. 真实试玩验证 14 天流程是否已经更像短篇恋爱互动 Demo，而不是关系规则测试器。
-2. 重点观察普通日行动、NPC 简短回应、氛围头部和余波日是否足够让玩家理解每天能做什么。
-3. 暂不立即扩底层关系系统；如继续迭代，优先根据试玩反馈小步调整每日行动和可见反馈。
+1. v0.1.60 优先拆分开局关系选择：快速预设 / 问卷生成 / 手动自定义。
+2. v0.1.61 再补玩家生活行动层 MVP，让每日选择包含学习 / 工作 / 休息 / 社交 / 恋爱互动。
+3. 暂不立即扩底层关系系统；先继续用真实试玩验证逐日即时反馈是否解决“像批量问卷”的问题。
