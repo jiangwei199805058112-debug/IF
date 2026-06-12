@@ -124,7 +124,7 @@ def _pause_for_next_day(
 ) -> None:
     if not interactive or day >= 14:
         return
-    emit_interactive_lines(["按回车进入下一天。"], True)
+    emit_interactive_lines(["按回车继续。"], True)
     input_func("")
 
 
@@ -189,6 +189,108 @@ def _apply_delta(state: RelationshipState, delta: OutcomeDelta) -> None:
     state.flaw = _clamp(state.flaw + _direction_value(delta.flaw))
     if delta.crisis and "crisis" not in state.active_hooks:
         state.active_hooks.append("crisis")
+
+
+def _effective_branch_for_choice(
+    event: dict[str, Any],
+    branch: dict[str, Any],
+    choice_tag: str,
+) -> dict[str, Any]:
+    if event.get("event_id") != "CONFLICT_001":
+        return branch
+    if str(branch.get("branch_id", "")) not in {"CONFLICT_001_C", "CONFLICT_001_E"}:
+        return branch
+
+    if choice_tag == "private_talk":
+        return _branch_with_overrides(
+            branch,
+            branch_id="CONFLICT_001_PRIVATE_TALK",
+            truth="约定私下复盘",
+            visible_info="你们都还带着情绪，但没有把话停在沉默里。",
+            npc_explanation="我现在还有点乱，但我们可以晚点私下把这件事说清。",
+            behavior_tags=["私下沟通", "修复尝试"],
+            outcome_delta={
+                "pressure": "slight_up",
+                "conflict": "slight_down",
+                "disappointment": "slight_down",
+            },
+            perceived_feedback={
+                "level": "slight_unease",
+                "text": "问题没有立刻解决，但修复窗口还在，关键是之后能不能继续说清楚。",
+            },
+            memory={
+                "write": True,
+                "summary": "冲突后约定私下复盘，修复窗口仍然打开",
+                "resolved": False,
+            },
+            next_hooks=["private_repair"],
+        )
+
+    if choice_tag == "apologize_boundary":
+        return _branch_with_overrides(
+            branch,
+            branch_id="CONFLICT_001_APOLOGY_BOUNDARY",
+            truth="当晚说清楚并承认影响",
+            visible_info="你们把最伤人的部分先停下来，重新说具体问题。",
+            npc_explanation="这次我也有做得不好的地方，我们把下次怎么做说清楚。",
+            behavior_tags=["道歉", "设边界", "修复尝试"],
+            outcome_delta={
+                "trust": "slight_up",
+                "security": "slight_up",
+                "pressure": "slight_down",
+                "conflict": "medium_down",
+                "disappointment": "slight_down",
+            },
+            perceived_feedback={
+                "level": "stable",
+                "text": "这次冲突仍有重量，但回应更像修复，而不是冷处理。",
+            },
+            memory={
+                "write": True,
+                "summary": "冲突后承认影响并约定下次做法",
+                "resolved": True,
+            },
+            next_hooks=["repair_success", "private_repair"],
+        )
+
+    if choice_tag == "reconnect_or_break":
+        return _branch_with_overrides(
+            branch,
+            branch_id="CONFLICT_001_RECONNECT_TALK",
+            truth="把是否继续摆到台面上",
+            visible_info="你们没有假装没事，而是开始谈这段关系还能不能继续。",
+            npc_explanation="如果还要继续，我们不能每次都这样耗着；不行也要说清楚。",
+            behavior_tags=["复联谈判", "关系去留"],
+            outcome_delta={
+                "security": "slight_down",
+                "pressure": "medium_up",
+                "conflict": "slight_up",
+            },
+            perceived_feedback={
+                "level": "obvious_abnormal",
+                "text": "这不像普通修复，更像把关系去留推到台面上。",
+            },
+            memory={
+                "write": True,
+                "summary": "冲突后把继续与否摆到台面上",
+                "resolved": False,
+            },
+            next_hooks=["reconnect_talk"],
+        )
+
+    return branch
+
+
+def _branch_with_overrides(branch: dict[str, Any], **overrides: Any) -> dict[str, Any]:
+    effective = dict(branch)
+    for key, value in overrides.items():
+        if isinstance(value, dict):
+            effective[key] = dict(value)
+        elif isinstance(value, list):
+            effective[key] = list(value)
+        else:
+            effective[key] = value
+    return effective
 
 
 def apply_event_branch(
@@ -435,6 +537,8 @@ def _build_turning_points(state: RelationshipState) -> list[str]:
         points.append("第 8 天，说法和时间线对不上，不安升级为关系危机。")
     if "repair_success" in hooks:
         points.append("第 12 天，冲突后双方愿意把问题摆到台面上。")
+    if "private_repair" in hooks and "repair_success" not in hooks:
+        points.append("第 12 天，冲突没有立刻解决，但双方留下了继续说清楚的修复窗口。")
     if "cold_war" in hooks:
         points.append("第 12 天，沉默替代沟通，冷处理成为关系转折点。")
     if "reconnect_talk" in hooks:
@@ -475,6 +579,8 @@ def _build_repair_chances(state: RelationshipState) -> list[str]:
 
     if "repair_success" in hooks:
         chances.append("保留这次当晚说清楚的沟通方式，后续冲突不要拖成冷战。")
+    if "private_repair" in hooks and "repair_success" not in hooks:
+        chances.append("把已经约好的私下复盘真正完成，不要让修复窗口重新变成沉默。")
     if "boundary_talk" in hooks:
         chances.append("把异性社交边界具体说清，包括提前说明、可接受频率和不舒服时怎么反馈。")
     if "reply_pattern_watch" in hooks:
@@ -520,6 +626,15 @@ def build_relationship_review(state: RelationshipState) -> RelationshipReview:
         repair_chances=_build_repair_chances(state),
         summary=_build_summary(state, sub_tags),
     )
+
+
+def _build_stage_reason_lines(review: RelationshipReview) -> list[str]:
+    lines = ["原因说明：", f"- {review.summary}"]
+    if review.main_reasons:
+        lines.append(f"- 主要依据：{review.main_reasons[0]}")
+    if review.turning_points:
+        lines.append(f"- 关键转折：{review.turning_points[0]}")
+    return lines
 
 
 def _select_interactive(
@@ -624,7 +739,6 @@ def run_day(
     if interactive:
         prompt = "\n".join(
             [
-                f"事件：{event['title']}",
                 f"你看到：{branch.get('visible_info', '')}",
                 f"对方解释：{branch.get('npc_explanation', '')}",
                 "选择你的处理方式：",
@@ -635,6 +749,7 @@ def run_day(
     elif not choice_tag and choices:
         choice_tag = str(choices[0].get("id", choices[0].get("tag", "")))
 
+    branch = _effective_branch_for_choice(event, branch, str(choice_tag or ""))
     state.transcript.append(f"你看到：{branch.get('visible_info', '')}")
     state.transcript.append(f"对方解释：{branch.get('npc_explanation', '')}")
     if choice_tag:
@@ -677,6 +792,8 @@ def run_14_day_simulation(
     final_start_index = len(state.transcript)
     state.transcript.append("")
     state.transcript.append(visible_summary)
+    for line in _build_stage_reason_lines(review):
+        state.transcript.append(line)
     if state.memory_entries:
         state.transcript.append("本轮留下的记忆：")
         for entry in state.memory_entries:

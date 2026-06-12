@@ -67,6 +67,16 @@ def main() -> None:
     assert "周然" in result_a["npc_response"]
     assert "许知遥" in result_b["npc_response"]
 
+    repeat_state = _state()
+    repeated_responses = []
+    atmosphere = "stable"
+    for day in (1, 2, 3):
+        result = resolve_daily_action("light_message", day, "chatting", "A", atmosphere, repeat_state)
+        repeated_responses.append(result["npc_response"])
+        _append_history(repeat_state, day, "light_message", result)
+        atmosphere = result["atmosphere_tag"]
+    assert len(set(repeated_responses)) >= 2
+
     cold_state = _state()
     first_header = format_daily_status_header(1, "chatting", "stable")
     atmosphere = "stable"
@@ -125,6 +135,9 @@ def main() -> None:
     assert "事件：异性饭局/神秘电话" in transcript_text
     assert "事件：吵架后是否解决" in transcript_text
     assert "第 14 天阶段结算" in transcript_text
+    assert "原因说明：" in transcript_text
+    assert "冲突后约定私下复盘" in transcript_text
+    assert "沉默没有回到问题本身，容易变成冷处理模式。" not in transcript_text
     assert transcript_text.count("氛围：") >= 14
     assert transcript_text.count("每日行动：") == 10
     assert transcript_text.count("对方回应：") == 10

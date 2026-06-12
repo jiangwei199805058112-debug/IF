@@ -13,7 +13,7 @@ if str(ROOT) not in sys.path:
 
 from if_game.engine import run_14_day_simulation
 from if_game.event_loader import load_day_flow, load_sample_characters, load_seed_events
-from if_game.main import _run_interactive_menu
+from if_game.main import _build_parser, _print_startup, _run_interactive_menu
 from if_game.questionnaire.loader import load_mvp_questionnaire
 
 
@@ -29,6 +29,14 @@ def _default_questionnaire_answer(question: dict) -> str:
 
 
 def main() -> None:
+    startup_output = StringIO()
+    with redirect_stdout(startup_output):
+        _print_startup()
+    startup_text = startup_output.getvalue()
+    assert "v0.1.60" in startup_text
+    assert "v0.1.6 控制台测试原型" not in startup_text
+    assert "v0.1.60" in _build_parser().description
+
     characters = load_sample_characters()
     events = load_seed_events()
     day_flow = load_day_flow()
@@ -72,6 +80,13 @@ def main() -> None:
     assert "余波日：" in transcript_text
     assert "第 7 天中期反馈：" in transcript_text
     assert "当前氛围趋势：" in transcript_text
+    assert "原因说明：" in transcript_text
+    assert "冲突后约定私下复盘" in transcript_text
+    assert "修复窗口" in transcript_text
+    assert "沉默没有回到问题本身，容易变成冷处理模式。" not in transcript_text
+    assert transcript_text.count("事件：对方很久没回消息") == 1
+    assert transcript_text.count("事件：异性饭局/神秘电话") == 1
+    assert transcript_text.count("事件：吵架后是否解决") == 1
     assert "本局开局倾向" not in transcript_text
 
     initial_modifiers = {
@@ -96,13 +111,19 @@ def main() -> None:
     assert result_with_initial_modifiers["memory_summaries"] == result["memory_summaries"]
 
     immediate_inputs = iter([""] * 40)
+    immediate_prompts: list[str] = []
+
+    def immediate_input(prompt: str = "") -> str:
+        immediate_prompts.append(prompt)
+        return next(immediate_inputs)
+
     immediate_output = StringIO()
     with redirect_stdout(immediate_output):
         interactive_result = run_14_day_simulation(
             "ambiguous",
             "A",
             interactive=True,
-            input_func=lambda _prompt="": next(immediate_inputs),
+            input_func=immediate_input,
         )
     immediate_text = immediate_output.getvalue()
     assert "每日行动：" in immediate_text
@@ -113,10 +134,12 @@ def main() -> None:
     assert "记忆账本：" in immediate_text
     assert "关系状态变化：" in immediate_text
     assert "感知反馈：" in immediate_text
-    assert "按回车进入下一天。" in immediate_text
+    assert "按回车继续。" in immediate_text
+    assert "按回车进入下一天。" not in immediate_text
     assert "第 14 天阶段结算" in immediate_text
     assert immediate_text.index("每日行动：") < immediate_text.index("第 2 天：")
-    assert "按回车进入下一天。" not in "\n".join(interactive_result["transcript"])
+    assert "按回车继续。" not in "\n".join(interactive_result["transcript"])
+    assert not any(prompt.startswith("事件：") for prompt in immediate_prompts)
 
     questionnaire = load_mvp_questionnaire()
     captured_run_kwargs: dict = {}
@@ -155,6 +178,9 @@ def main() -> None:
 
     menu_yes_output = output.getvalue()
     assert "是否先回答问卷，生成本局初始倾向？" in menu_yes_output
+    assert "快速预设组合会同时决定玩家倾向、NPC 倾向和主要矛盾主题。" in menu_yes_output
+    assert "选择快速预设组合：" in menu_yes_output
+    assert "选择样例角色组合：" not in menu_yes_output
     assert "本局开局倾向" in menu_yes_output
     assert captured_run_kwargs["initial_modifiers"]["reassurance_need_delta"] > 0
     assert captured_run_kwargs["initial_modifiers"]["privacy_boundary_sensitivity_delta"] > 0
@@ -172,7 +198,8 @@ def main() -> None:
     assert "本局开局倾向" not in interactive_output
     assert "每日行动：" in interactive_output
     assert "对方回应：" in interactive_output
-    assert "按回车进入下一天。" in interactive_output
+    assert "按回车继续。" in interactive_output
+    assert "按回车进入下一天。" not in interactive_output
 
     menu_inputs = iter(
         ["3"]

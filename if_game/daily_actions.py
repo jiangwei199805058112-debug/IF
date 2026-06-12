@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 
 ENTRY_LABELS = {
@@ -181,14 +181,33 @@ NPC_NAMES = {
 
 NPC_RESPONSE_TEMPLATES = {
     "A": {
-        "ask_busy": "周然过了一会儿回：“最近确实忙，没什么特别的。” 他没有拒绝你，但解释依然很短。",
-        "wait_contact": "周然直到晚上才回一句：“刚看到。” 话题还在，只是主动性很弱。",
+        "light_message": [
+            "周然过了一会儿回了个表情，又补一句：“今天还行。” 话题被接住，但节奏还是慢。",
+            "周然回：“你这个话题还挺轻松。” 他多聊了两句，只是没有主动展开太多。",
+            "周然晚点才回：“刚忙完，看到你发的了。” 语气不冷，但主动性仍然有限。",
+        ],
+        "ask_busy": [
+            "周然过了一会儿回：“最近确实忙，没什么特别的。” 他没有拒绝你，但解释依然很短。",
+            "周然说：“不是故意不回，就是事情堆在一起。” 他愿意说明，但还是省掉了细节。",
+            "周然停了一阵才回：“我这几天状态一般，晚点跟你说。” 这次至少留下了继续说的口子。",
+        ],
+        "wait_contact": [
+            "周然直到晚上才回一句：“刚看到。” 话题还在，只是主动性很弱。",
+            "周然很晚发来：“今天太累了。” 你等到了回应，但没有等到太多热度。",
+            "周然隔了几个小时才问：“你今天怎么样？” 这像补上联系，也像维持最低频率。",
+        ],
         "clarify_thoughts": "周然停了很久才说：“我不是不想聊，就是最近真的累。” 他愿意解释，但还不太会展开。",
         "confirm_boundary": "周然说：“可以，你说清楚我会记一下。” 他的语气平稳，但回复仍然偏短。",
     },
     "B": {
-        "ask_busy": "许知遥回：“怎么突然问这个？你是不是也有什么没说？” 她回应了你，但语气里带着一点反问。",
-        "wait_contact": "许知遥先发来一个问号，又补一句：“你今天也挺能忍啊。” 她没有消失，却明显在试探。",
+        "ask_busy": [
+            "许知遥回：“怎么突然问这个？你是不是也有什么没说？” 她回应了你，但语气里带着一点反问。",
+            "许知遥很快说：“你可以问，但别只让我解释。” 她接住了问题，也把压力推回一点。",
+        ],
+        "wait_contact": [
+            "许知遥先发来一个问号，又补一句：“你今天也挺能忍啊。” 她没有消失，却明显在试探。",
+            "许知遥隔了一会儿发：“今天不找我？” 这像主动，也像在确认你会不会先靠近。",
+        ],
         "clarify_thoughts": "许知遥说：“你想确认可以，但你也要告诉我你到底在担心什么。” 她接话很快，边界感也更尖。",
         "confirm_boundary": "许知遥回：“可以谈，但别只要求我，你自己的社交也要一样。” 话题被接住，也带着比较。",
     },
@@ -205,16 +224,40 @@ NPC_RESPONSE_TEMPLATES = {
     "E": {
         "show_care": "陆晚回：“我知道你是在关心我。” 她接住了这句话，但仍在观察你会不会持续。",
         "discuss_pace": "陆晚说：“可以慢慢谈，我不想只是靠猜。” 她愿意把节奏摆到台面上。",
-        "keep_light": "陆晚顺着你的话题聊了几句，又轻轻问：“你今天心情还好吗？” 她没有逼近，但在确认你的状态。",
+        "keep_light": [
+            "陆晚顺着你的话题聊了几句，又轻轻问：“你今天心情还好吗？” 她没有逼近，但在确认你的状态。",
+            "陆晚接住了你的轻松话题，最后补一句：“这样聊也挺舒服的。” 气氛比前一天松了一点。",
+            "陆晚回得不算快，但每句都有回应。她没有推进关系，只是让聊天继续保持温度。",
+        ],
     },
 }
 
 FALLBACK_RESPONSES = {
-    "A": "{name}回得不快，但还是接住了话题：“嗯，我看到了，晚点细说。”",
-    "B": "{name}很快回：“你今天好像有点不一样，是不是在试我？”",
-    "C": "{name}说：“可以，我们把时间和安排说清楚就行。”",
-    "D": "{name}隔了一会儿回：“你想怎样就怎样吧。” 话没断，但温度偏低。",
-    "E": "{name}回：“我知道你在意这个，我们可以慢慢说。”",
+    "A": [
+        "{name}回得不快，但还是接住了话题：“嗯，我看到了，晚点细说。”",
+        "{name}隔了一阵才回：“我刚处理完事。” 话题还在，只是节奏偏慢。",
+        "{name}回了一句简短的话，又补了个表情。你能感觉到他没有完全避开。",
+    ],
+    "B": [
+        "{name}很快回：“你今天好像有点不一样，是不是在试我？”",
+        "{name}接得很快：“可以聊，但你也别只让我猜。” 回应里带着一点较劲。",
+        "{name}问：“你是真的想聊，还是想看我会不会主动？” 话题被接住，但张力也上来了。",
+    ],
+    "C": [
+        "{name}说：“可以，我们把时间和安排说清楚就行。”",
+        "{name}回：“这事能谈，先看怎么安排比较实际。” 他把话题拉回可执行的部分。",
+        "{name}没有说太多情绪，只问你：“那你希望我具体怎么做？”",
+    ],
+    "D": [
+        "{name}隔了一会儿回：“你想怎样就怎样吧。” 话没断，但温度偏低。",
+        "{name}只回了两个字：“随你。” 联系还在，气氛却明显更冷。",
+        "{name}晚点才说：“我现在不想聊太多。” 这不是断联，但回避感更明显。",
+    ],
+    "E": [
+        "{name}回：“我知道你在意这个，我们可以慢慢说。”",
+        "{name}说：“我不想靠猜，我们把话说清楚会好一点。”",
+        "{name}停了一会儿才回：“我会听你说，但也想知道你真正担心什么。”",
+    ],
 }
 
 ATMOSPHERE_RESULT_TEXT = {
@@ -276,7 +319,7 @@ def resolve_daily_action(
 
     return {
         "action_label": action["label"],
-        "npc_response": _npc_response(profile_pair_id, action["action_key"]),
+        "npc_response": _npc_response(profile_pair_id, action["action_key"], day, relationship_state),
         "atmosphere_tag": next_atmosphere,
         "relationship_delta": _bounded_relationship_delta(effect.get("relationship_delta", {})),
         "player_feedback": _player_feedback(action["action_key"], next_atmosphere, initial_modifiers),
@@ -480,13 +523,33 @@ def _cooling_streak(relationship_state: Any) -> int:
     return streak
 
 
-def _npc_response(profile_pair_id: str, action_key: str) -> str:
+def _npc_response(profile_pair_id: str, action_key: str, day: int, relationship_state: Any) -> str:
     pair_id = profile_pair_id if profile_pair_id in NPC_NAMES else "A"
     response = NPC_RESPONSE_TEMPLATES.get(pair_id, {}).get(action_key)
     if response:
-        return response
+        return _rotated_response(response, day, _action_repeat_count(relationship_state, action_key))
     name = NPC_NAMES.get(pair_id, "对方")
-    return FALLBACK_RESPONSES.get(pair_id, FALLBACK_RESPONSES["A"]).format(name=name)
+    fallback = FALLBACK_RESPONSES.get(pair_id, FALLBACK_RESPONSES["A"])
+    return _rotated_response(fallback, day, _action_repeat_count(relationship_state, action_key)).format(name=name)
+
+
+def _rotated_response(response: str | Sequence[str], day: int, repeat_count: int) -> str:
+    if isinstance(response, str):
+        return response
+    variants = [item for item in response if item]
+    if not variants:
+        return ""
+    index = (int(day) + int(repeat_count)) % len(variants)
+    return str(variants[index])
+
+
+def _action_repeat_count(relationship_state: Any, action_key: str) -> int:
+    history = getattr(relationship_state, "daily_action_history", [])
+    count = 0
+    for item in history:
+        if str(_mapping(item).get("action_key", "")) == action_key:
+            count += 1
+    return count
 
 
 def _player_feedback(

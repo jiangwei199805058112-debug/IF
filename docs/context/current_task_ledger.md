@@ -2,7 +2,7 @@
 
 ## 1. 当前任务版本号
 
-- 当前账本任务：v0.1.59 即时反馈与逐日交互修复。
+- 当前账本任务：v0.1.60 试玩体验小修与开局选择说明。
 - 仓库当前 HEAD（v0.1.51 开始时）：`15edba2 docs: 更新v0.1.50任务账本状态`。
 - 三阶段最终验证开始时 HEAD：`190d4a5 docs: 更新v0.1.51任务账本状态`。
 - 小规模关系事件样例验证开始时 HEAD：`29c2ed3 docs: 更新关系系统最终验证账本`。
@@ -25,6 +25,7 @@
 - v0.1.58 14 天互动玩法壳层 MVP 实现 commit：本次提交 `feat: 增加14天互动玩法壳层`。
 - v0.1.59 即时反馈与逐日交互修复开始时 HEAD：`846eca5 docs: 记录v0.1.58试玩反馈待办`。
 - v0.1.59 即时反馈与逐日交互修复实现 commit：本次提交 `fix: 增加14天互动即时反馈`。
+- v0.1.60 试玩体验小修与开局选择说明开始时 HEAD：`e77867e docs: 记录v0.1.59试玩反馈与下一步修复`。
 - 重要版本号修正：README 已存在 `v0.1.48 关系系统代码落地复盘`，因此后续三个代码阶段统一顺延：
   - v0.1.49：aggregator 接入 14 天主流程。
   - v0.1.50：问卷结果转初始关系/人格修正。
@@ -32,18 +33,14 @@
 
 ## 2. 当前阶段
 
-- 阶段：v0.1.59 即时反馈与逐日交互修复已完成，本账本随实现提交同步。
-- 本任务来自 `docs/context/2026-06-12_v0_1_58_playtest_feedback_backlog.md`。
+- 阶段：v0.1.60 试玩体验小修与开局选择说明已完成。
+- 本任务来自 `docs/context/2026-06-12_v0_1_59_playtest_feedback_backlog.md`，即 v0.1.59 真实试玩反馈。
+- 未来 UI / 生活场景文档 `docs/ideas/01_visual_life_scene_concept.md`、`docs/ideas/02_visual_system_code_backlog.md`、`docs/ideas/03_home_tablet_speaker_extension.md` 只作为方向约束，本轮不实现 UI。
 - 已完成阶段 A / v0.1.49；已完成阶段 B / v0.1.50；阶段 C / v0.1.51 已完成；最终验证已完成。
-- 下一步代码阶段：v0.1.60 开局关系选择拆分，或 v0.1.61 玩家生活行动层 MVP。
-- 下一步动作：优先根据试玩反馈拆分开局关系选择；随后补玩家生活行动层，不要立即扩底层关系系统。
+- 下一步建议：开局关系选择拆分 / 玩家生活行动层。
+- 本轮已修复事件标题重复、冲突修复反馈、NPC 回应重复、继续提示、版本号、快速预设说明和第 14 天原因说明。
 - 任意后续任务开始前，必须先读取 `docs/context/current_task_ledger.md`，再继续判断当前阶段和下一步动作。
-- 因当前对话已有上下文压缩摘要，已再次执行恢复流程中的必要读取动作：
-  - 已读取 README.md。
-  - 已读取 docs/context/codex_task_prompts.md。
-  - 已执行 `git status --short`。
-  - 已执行 `git log --oneline --decorate -8`。
-  - 已对照任务表确认当前阶段为 v0.1.54。
+- 本轮开始前已执行 `git status --short`、`git pull --ff-only origin main`、`git log --oneline --decorate -8`，并读取当前账本、v0.1.59 试玩反馈 backlog 和三份未来 UI / 生活场景创意文档。
 
 ## 3. 已完成事项
 
@@ -642,6 +639,24 @@ git status --short
   - `python tests/relationship_memory_test.py`：通过，输出 `relationship memory test passed`。
   - `python tests/questionnaire_runner_test.py`：通过，输出 `questionnaire runner test passed`。
   - `git diff --check`：通过，退出码 0，仅有 LF/CRLF 提示。
+- 已完成 v0.1.60 试玩体验小修与开局选择说明：
+  - 事件交互选择 prompt 不再重复输出事件标题；transcript 中每个关键事件标题只记录一次。
+  - 第 12 天冷战分支下选择“约定私下把问题说清”时，会改按私下复盘 / 修复窗口处理，不再输出冷处理聚合反馈。
+  - 第 12 天修复、道歉设边界、复联去留等选择拥有不同记忆账本、关系状态变化和感知反馈。
+  - 普通日高频 NPC 回应支持 2-3 条模板轮换；同一 profile_pair + action_key 会按日期和重复次数做确定性选择。
+  - 每日结束提示从“按回车进入下一天。”改为“按回车继续。”，非互动模式仍不等待输入。
+  - 启动版本号统一为 `v0.1.60`，开局“样例角色组合”改名为“快速预设组合”，并说明其决定玩家倾向、NPC 倾向和主要矛盾主题。
+  - 第 14 天阶段结算追加“原因说明”，复用现有关系复盘摘要、主要依据和关键转折。
+  - README 已同步 v0.1.60 试玩体验小修说明，并声明未来视觉 / 家庭设备创意本轮不落地 UI。
+- v0.1.60 已运行测试：
+  - `python tests/daily_actions_test.py`：通过，输出 `daily actions test passed`。
+  - `python tests/smoke_test.py`：通过，输出 `smoke test passed`。
+  - `python tests/scenario_test.py`：通过，输出 `scenario test passed`。
+  - `python tests/reporting_test.py`：通过，输出 `reporting test passed`。
+  - `python tests/relationship_state_aggregator_test.py`：通过，输出 `relationship state aggregator test passed`。
+  - `python tests/relationship_memory_test.py`：通过，输出 `relationship memory test passed`。
+  - `python tests/questionnaire_runner_test.py`：通过，输出 `questionnaire runner test passed`。
+  - `git diff --check`：通过，退出码 0，仅有 LF/CRLF 提示。
 
 ## 9. 已提交 commit
 
@@ -693,9 +708,11 @@ git status --short
   - 本次提交 `feat: 增加14天互动玩法壳层`
 - v0.1.59 即时反馈与逐日交互修复实现提交：
   - 本次提交 `fix: 增加14天互动即时反馈`
+- v0.1.60 试玩体验小修与开局选择说明实现提交：
+  - 本次提交 `fix: 优化14天试玩体验细节`
 
 ## 10. 下一步动作
 
-1. v0.1.60 优先拆分开局关系选择：快速预设 / 问卷生成 / 手动自定义。
-2. v0.1.61 再补玩家生活行动层 MVP，让每日选择包含学习 / 工作 / 休息 / 社交 / 恋爱互动。
-3. 暂不立即扩底层关系系统；先继续用真实试玩验证逐日即时反馈是否解决“像批量问卷”的问题。
+1. 开局关系选择拆分：快速预设 / 问卷生成 / 手动自定义。
+2. 玩家生活行动层 MVP：让每日选择包含学习 / 工作 / 休息 / 社交 / 恋爱互动。
+3. 暂不立即扩底层关系系统；继续用真实试玩验证逐日反馈和 14 天结算是否足够可玩。

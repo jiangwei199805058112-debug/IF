@@ -40,6 +40,7 @@ def _assert_scenario_expectations(scenario: dict[str, Any], result: dict[str, An
     assert "对方回应：" in transcript_text
     assert "氛围：" in transcript_text
     assert "第 14 天阶段结算" in transcript_text
+    assert "原因说明：" in transcript_text
     assert len(result["daily_action_history"]) == 10
     for token in expected["forbidden_transcript_tokens"]:
         assert token not in transcript_text, f"{scenario['id']} leaked token {token}"
@@ -83,6 +84,9 @@ def main() -> None:
         "CONFLICT_001": {"branch_id": "CONFLICT_001_C", "choice_tag": "private_talk"},
     }
     baseline = run_14_day_simulation("ambiguous", "A", scripted_choices=scripted_choices)
+    baseline_text = "\n".join(baseline["transcript"])
+    assert "冲突后约定私下复盘" in baseline_text
+    assert "沉默没有回到问题本身，容易变成冷处理模式。" not in baseline_text
     with_initial_modifiers = run_14_day_simulation(
         "ambiguous",
         "A",

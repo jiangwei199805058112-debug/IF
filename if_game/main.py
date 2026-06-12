@@ -13,6 +13,8 @@ from .questionnaire.runner import collect_questionnaire_result, run_questionnair
 from .reporting import format_transcript, write_report, write_scenario_summary
 
 
+APP_VERSION = "v0.1.60"
+
 MODE_OPTIONS = [
     ("interactive", "互动运行 14 天"),
     ("scenarios", "运行内置场景测试摘要"),
@@ -63,7 +65,7 @@ def _find_scenario(scenario_id: str) -> dict[str, Any]:
 
 
 def _print_startup() -> None:
-    print("IF v0.1.6 控制台测试原型")
+    print(f"IF {APP_VERSION} 控制台测试原型")
     print("真实内部数值不会显示。")
     print()
 
@@ -102,7 +104,9 @@ def _run_interactive_menu() -> None:
 
     profiles = load_sample_characters()
     pair_options = [(pair_id, pair["title"]) for pair_id, pair in profiles["pairs"].items()]
-    profile_pair_id = _choose("选择样例角色组合：", pair_options, default_index=0)
+    print("快速预设组合会同时决定玩家倾向、NPC 倾向和主要矛盾主题。")
+    print("这个入口仅用于快速试玩；后续会支持问卷生成和手动自定义。")
+    profile_pair_id = _choose("选择快速预设组合：", pair_options, default_index=0)
 
     print()
     print("开始 14 天模拟。普通日可选择每日行动，关键事件日会提供处理方式。")
@@ -148,7 +152,7 @@ def _run_all_scenarios(export_path: str | None = None) -> None:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="IF v0.1.6 控制台测试原型")
+    parser = argparse.ArgumentParser(description=f"IF {APP_VERSION} 控制台测试原型")
     parser.add_argument("--list-scenarios", action="store_true", help="列出所有内置试玩场景")
     parser.add_argument("--scenario", help="运行指定脚本场景 ID")
     parser.add_argument("--run-all-scenarios", action="store_true", help="运行全部内置脚本场景")
