@@ -128,7 +128,11 @@ def _pause_for_next_day(
     input_func("")
 
 
-def initialize_relationship(entry_mode: str, profile_pair: dict[str, Any]) -> RelationshipState:
+def initialize_relationship(
+    entry_mode: str,
+    profile_pair: dict[str, Any],
+    relationship_config: dict[str, Any] | None = None,
+) -> RelationshipState:
     player = CharacterProfile.from_dict(profile_pair["player"])
     npc = CharacterProfile.from_dict(profile_pair["npc"])
     stage = ENTRY_STAGE.get(entry_mode, "暧昧中")
@@ -148,13 +152,44 @@ def initialize_relationship(entry_mode: str, profile_pair: dict[str, Any]) -> Re
         player=player,
         npc=npc,
     )
-    state.transcript.append(f"开局：{stage}。样例组合：{state.pair_title}。")
+    state.transcript.append(f"开局：{stage}。")
+    for line in _format_relationship_config_lines(state.pair_title, relationship_config):
+        state.transcript.append(line)
     state.transcript.append(f"玩家：{player.display_name}；NPC：{npc.display_name}。")
     state.transcript.append("本轮目标：")
     state.transcript.append("- 在 14 天内判断这段关系是否值得继续推进。")
     state.transcript.append("- 你可以选择靠近、观察、谈边界、修复冲突或主动降温。")
     state.transcript.append(f"- {ENTRY_GOALS.get(entry_mode, ENTRY_GOALS['ambiguous'])}")
     return state
+
+
+def _format_relationship_config_lines(
+    pair_title: str,
+    relationship_config: dict[str, Any] | None,
+) -> list[str]:
+    config = relationship_config or {
+        "setup_method": "快速预设组合",
+        "quick_preset_title": pair_title,
+        "player_tendency": "由快速预设决定",
+        "npc_tendency": "由快速预设决定",
+        "conflict_theme": "由快速预设决定",
+    }
+
+    setup_method = str(config.get("setup_method", "关系配置"))
+    lines = [f"关系配置：{setup_method}。"]
+    if setup_method == "快速预设组合":
+        lines.append(f"快速预设：{config.get('quick_preset_title', pair_title)}。")
+
+    player_tendency = str(config.get("player_tendency", "")).strip()
+    npc_tendency = str(config.get("npc_tendency", "")).strip()
+    conflict_theme = str(config.get("conflict_theme", "")).strip()
+    if player_tendency:
+        lines.append(f"玩家倾向：{player_tendency}。")
+    if npc_tendency:
+        lines.append(f"NPC 倾向：{npc_tendency}。")
+    if conflict_theme:
+        lines.append(f"主要矛盾：{conflict_theme}。")
+    return lines
 
 
 def _initial_modifier_summary(initial_modifiers: dict[str, Any] | None) -> list[str]:
@@ -628,13 +663,91 @@ def build_relationship_review(state: RelationshipState) -> RelationshipReview:
     )
 
 
-def _build_stage_reason_lines(review: RelationshipReview) -> list[str]:
-    lines = ["原因说明：", f"- {review.summary}"]
-    if review.main_reasons:
-        lines.append(f"- 主要依据：{review.main_reasons[0]}")
-    if review.turning_points:
-        lines.append(f"- 关键转折：{review.turning_points[0]}")
+def _build_stage_reason_lines(state: RelationshipState, review: RelationshipReview) -> list[str]:
+    lines = ["原因说明："]
+    daily_line = _daily_behavior_reason(state)
+    if daily_line:
+        lines.append(f"- {daily_line}")
+
+    key_line = _key_event_reason(state)
+    if key_line:
+        lines.append(f"- {key_line}")
+
+    day12_line = _day12_reason(state)
+    if day12_line:
+        lines.append(f"- {day12_line}")
+
+    lines.append(f"- {_final_stage_reason(state.stage)}")
+    if len(lines) == 2 and review.summary:
+        lines.insert(1, f"- {review.summary}")
     return lines
+
+
+def _daily_behavior_reason(state: RelationshipState) -> str:
+    active_count = 0
+    cold_count = 0
+    for item in state.daily_action_history:
+        tags = {str(tag) for tag in item.get("context_tags", [])}
+        if tags.intersection({"warm_action", "repair_action", "stable_action", "advance_action", "disclosure_action"}):
+            active_count += 1
+        if "cold_action" in tags:
+            cold_count += 1
+
+    if active_count >= 4 and active_count >= cold_count:
+        return "你们仍保持联系，主要是因为你多次选择主动沟通维持了联系。"
+    if cold_count >= 3 and cold_count > active_count:
+        return "多次等待、观察或拉开距离，说明主动性下降导致关系降温。"
+    if active_count:
+        return "普通日里仍有一些主动回应，避免关系只被关键事件定义。"
+    return ""
+
+
+def _key_event_reason(state: RelationshipState) -> str:
+    entries_by_day = {entry.day: entry.summary for entry in state.memory_entries if entry.day in {3, 8, 12}}
+    ordered = [(day, entries_by_day[day]) for day in (3, 8, 12) if day in entries_by_day]
+    if len(ordered) >= 2:
+        joined = "、".join(f"第 {day} 天的“{summary}”" for day, summary in ordered[:3])
+        return f"{joined}共同影响了最终关系走向。"
+    if len(ordered) == 1:
+        day, summary = ordered[0]
+        return f"第 {day} 天的{summary}是这轮关系变化的主要节点之一。"
+    return ""
+
+
+def _day12_reason(state: RelationshipState) -> str:
+    conflict_log = next(
+        (item for item in state.event_resolution_log if item.get("event_id") == "CONFLICT_001"),
+        None,
+    )
+    if not conflict_log:
+        return ""
+
+    branch_id = str(conflict_log.get("branch_id", ""))
+    choice_tag = str(conflict_log.get("choice_tag", ""))
+    hooks = set(state.active_hooks)
+    if branch_id in {"CONFLICT_001_PRIVATE_TALK", "CONFLICT_001_APOLOGY_BOUNDARY", "CONFLICT_001_A"} or (
+        choice_tag in {"private_talk", "apologize_boundary"} and "cold_war" not in hooks
+    ):
+        return "第 12 天的修复选择避免关系继续降温，让关系仍保留继续说清楚的空间。"
+    if branch_id == "CONFLICT_001_C" or choice_tag == "cold" or "cold_war" in hooks:
+        return "第 12 天问题停在沉默里导致降温，未解决冲突被记成后续旧账。"
+    if branch_id == "CONFLICT_001_D" or "reconnect_talk" in hooks:
+        return "第 12 天连接被切断后只能靠复联重谈，关系因此更接近危机。"
+    return ""
+
+
+def _final_stage_reason(final_stage: str) -> str:
+    if final_stage in {"确认关系", "升温"}:
+        return f"因为关键问题后仍有回应和修复动作，所以结算偏向{final_stage}。"
+    if final_stage == "继续暧昧":
+        return "这些问题没有把关系推入危机，但也不足以稳定升温，所以停在继续暧昧。"
+    if final_stage in {"暧昧降温", "冷淡"}:
+        return f"多个未收尾问题叠加，让关系热度下降到{final_stage}。"
+    if final_stage in {"分手危机", "分手"}:
+        return f"信任损伤、冲突或连接中断已经压过日常维持，所以结算进入{final_stage}。"
+    if final_stage == "分分合合倾向":
+        return "吸引和不信任同时存在，关系更容易进入反复拉扯。"
+    return f"综合日常互动和关键事件后，关系停在{final_stage}。"
 
 
 def _select_interactive(
@@ -769,6 +882,7 @@ def run_14_day_simulation(
     interactive: bool = False,
     input_func: Callable[[str], str] = input,
     initial_modifiers: dict[str, Any] | None = None,
+    relationship_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     profiles = load_sample_characters()
     events = load_seed_events()
@@ -778,7 +892,7 @@ def run_14_day_simulation(
     if profile_pair_id not in pairs:
         raise KeyError(f"Unknown profile pair: {profile_pair_id}")
 
-    state = initialize_relationship(entry_mode, pairs[profile_pair_id])
+    state = initialize_relationship(entry_mode, pairs[profile_pair_id], relationship_config)
     initial_modifier_summary = _append_initial_modifier_summary(state, initial_modifiers)
     _emit_new_transcript_lines(state, 0, interactive)
     for day_config in day_flow:
@@ -792,7 +906,7 @@ def run_14_day_simulation(
     final_start_index = len(state.transcript)
     state.transcript.append("")
     state.transcript.append(visible_summary)
-    for line in _build_stage_reason_lines(review):
+    for line in _build_stage_reason_lines(state, review):
         state.transcript.append(line)
     if state.memory_entries:
         state.transcript.append("本轮留下的记忆：")
@@ -811,6 +925,7 @@ def run_14_day_simulation(
         "relationship_delta_summaries": list(getattr(state, "relationship_delta_summaries", [])),
         "initial_modifiers": dict(initial_modifiers or {}),
         "initial_modifier_summary": list(initial_modifier_summary),
+        "relationship_config": dict(relationship_config or {}),
         "daily_action_history": list(state.daily_action_history),
         "atmosphere_history": list(state.atmosphere_history),
         "event_resolution_log": list(state.event_resolution_log),

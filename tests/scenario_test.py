@@ -41,6 +41,7 @@ def _assert_scenario_expectations(scenario: dict[str, Any], result: dict[str, An
     assert "氛围：" in transcript_text
     assert "第 14 天阶段结算" in transcript_text
     assert "原因说明：" in transcript_text
+    assert "样例组合" not in transcript_text
     assert len(result["daily_action_history"]) == 10
     for token in expected["forbidden_transcript_tokens"]:
         assert token not in transcript_text, f"{scenario['id']} leaked token {token}"
@@ -73,6 +74,9 @@ def main() -> None:
         assert result["review"]["risks"]
         assert result["review"]["repair_chances"]
         _assert_scenario_expectations(scenario, result)
+        result_text = "\n".join(result["transcript"])
+        if result["scenario_id"] == "scenario_cold":
+            assert "第 12 天问题停在沉默里导致降温" in result_text
         print(
             f"{scenario['id']}: {result['final_stage']} | "
             f"tags={','.join(result['review']['sub_tags'])}"
@@ -86,6 +90,9 @@ def main() -> None:
     baseline = run_14_day_simulation("ambiguous", "A", scripted_choices=scripted_choices)
     baseline_text = "\n".join(baseline["transcript"])
     assert "冲突后约定私下复盘" in baseline_text
+    assert "第 3 天的" in baseline_text
+    assert "第 8 天的" in baseline_text
+    assert "第 12 天的修复选择避免关系继续降温" in baseline_text
     assert "沉默没有回到问题本身，容易变成冷处理模式。" not in baseline_text
     with_initial_modifiers = run_14_day_simulation(
         "ambiguous",

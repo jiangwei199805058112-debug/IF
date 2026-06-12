@@ -136,14 +136,47 @@ def main() -> None:
     assert "事件：吵架后是否解决" in transcript_text
     assert "第 14 天阶段结算" in transcript_text
     assert "原因说明：" in transcript_text
+    assert "第 3 天的" in transcript_text
+    assert "第 8 天的" in transcript_text
+    assert "第 12 天的修复选择避免关系继续降温" in transcript_text
     assert "冲突后约定私下复盘" in transcript_text
     assert "沉默没有回到问题本身，容易变成冷处理模式。" not in transcript_text
+    assert "样例组合" not in transcript_text
+    assert "关系配置：快速预设组合。" in transcript_text
     assert transcript_text.count("氛围：") >= 14
     assert transcript_text.count("每日行动：") == 10
     assert transcript_text.count("对方回应：") == 10
     assert len(result["daily_action_history"]) == 10
     assert result["relationship_delta_summaries"]
     assert "trust=" not in transcript_text
+
+    custom_result = run_14_day_simulation(
+        "ambiguous",
+        "E",
+        relationship_config={
+            "setup_method": "手动自定义",
+            "player_tendency": "成熟沟通型",
+            "npc_tendency": "情绪试探型",
+            "conflict_theme": "沟通修复与情绪试探",
+        },
+    )
+    custom_text = "\n".join(custom_result["transcript"])
+    assert "关系配置：手动自定义。" in custom_text
+    assert "玩家倾向：成熟沟通型。" in custom_text
+    assert "NPC 倾向：情绪试探型。" in custom_text
+    assert "主要矛盾：沟通修复与情绪试探。" in custom_text
+    assert "样例组合" not in custom_text
+
+    cold_daily_script = {
+        "daily_actions": {day: "observe" for day in (1, 2, 4, 5, 6, 7, 9, 10, 11, 13)},
+        "MSG_001": {"branch_id": "MSG_001_B", "choice_tag": "cool_down"},
+        "SOC_001": {"branch_id": "SOC_001_B", "choice_tag": "cold"},
+        "CONFLICT_001": {"branch_id": "CONFLICT_001_C", "choice_tag": "cold"},
+    }
+    cold_daily_result = run_14_day_simulation("ambiguous", "A", scripted_choices=cold_daily_script)
+    cold_daily_text = "\n".join(cold_daily_result["transcript"])
+    assert "主动性下降导致关系降温" in cold_daily_text
+    assert "第 12 天问题停在沉默里导致降温" in cold_daily_text
 
     print("daily actions test passed")
 

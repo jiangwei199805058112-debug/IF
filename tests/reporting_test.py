@@ -51,6 +51,7 @@ def main() -> None:
         assert token in transcript_report
     assert "关系状态变化" in transcript_report
     assert "原因说明：" in transcript_report
+    assert "样例组合" not in transcript_report
     assert "每日行动：" in transcript_report
     assert "对方回应：" in transcript_report
     assert "氛围：" in transcript_report
@@ -72,6 +73,7 @@ def main() -> None:
     initial_report = format_transcript(initial_result)
     assert "本局开局倾向" in initial_report
     assert "这些只是开局倾向" in initial_report
+    assert "关系配置：快速预设组合。" in initial_report
     for phrase in ["你有病", "你一定会", "你就是", "人格障碍", "病态"]:
         assert phrase not in initial_report
     _assert_no_internal_values(initial_report)

@@ -33,9 +33,9 @@ def main() -> None:
     with redirect_stdout(startup_output):
         _print_startup()
     startup_text = startup_output.getvalue()
-    assert "v0.1.60" in startup_text
+    assert "v0.1.61" in startup_text
     assert "v0.1.6 控制台测试原型" not in startup_text
-    assert "v0.1.60" in _build_parser().description
+    assert "v0.1.61" in _build_parser().description
 
     characters = load_sample_characters()
     events = load_seed_events()
@@ -81,6 +81,10 @@ def main() -> None:
     assert "第 7 天中期反馈：" in transcript_text
     assert "当前氛围趋势：" in transcript_text
     assert "原因说明：" in transcript_text
+    assert "第 3 天的" in transcript_text
+    assert "第 8 天的" in transcript_text
+    assert "第 12 天的修复选择避免关系继续降温" in transcript_text
+    assert "主动沟通维持了联系" in transcript_text
     assert "冲突后约定私下复盘" in transcript_text
     assert "修复窗口" in transcript_text
     assert "沉默没有回到问题本身，容易变成冷处理模式。" not in transcript_text
@@ -88,6 +92,8 @@ def main() -> None:
     assert transcript_text.count("事件：异性饭局/神秘电话") == 1
     assert transcript_text.count("事件：吵架后是否解决") == 1
     assert "本局开局倾向" not in transcript_text
+    assert "样例组合" not in transcript_text
+    assert "关系配置：快速预设组合。" in transcript_text
 
     initial_modifiers = {
         "reassurance_need_delta": 3,
@@ -168,7 +174,7 @@ def main() -> None:
             print(line)
         return result
 
-    menu_yes_inputs = iter(["1", "1", "2", "1"])
+    menu_yes_inputs = iter(["1", "1", "2", "2", "", ""])
     output = StringIO()
     with patch("builtins.input", lambda _prompt="": next(menu_yes_inputs)):
         with patch("if_game.main.collect_questionnaire_result", fake_collect_questionnaire_result):
@@ -178,15 +184,17 @@ def main() -> None:
 
     menu_yes_output = output.getvalue()
     assert "是否先回答问卷，生成本局初始倾向？" in menu_yes_output
-    assert "快速预设组合会同时决定玩家倾向、NPC 倾向和主要矛盾主题。" in menu_yes_output
-    assert "选择快速预设组合：" in menu_yes_output
+    assert "选择本局关系设置方式：" in menu_yes_output
+    assert "根据问卷结果，本局玩家倾向更接近：" in menu_yes_output
     assert "选择样例角色组合：" not in menu_yes_output
     assert "本局开局倾向" in menu_yes_output
     assert captured_run_kwargs["initial_modifiers"]["reassurance_need_delta"] > 0
     assert captured_run_kwargs["initial_modifiers"]["privacy_boundary_sensitivity_delta"] > 0
     assert captured_run_kwargs["initial_modifiers"]["initial_modifier_summary"]
+    assert captured_run_kwargs["relationship_config"]["setup_method"] == "根据问卷生成"
+    assert "稳定回应需求较高" in captured_run_kwargs["relationship_config"]["player_tendency"]
 
-    interactive_inputs = iter(["1", "", "2", "1"] + [""] * 40)
+    interactive_inputs = iter(["1", "", "2", "1", "1"] + [""] * 40)
     output = StringIO()
     with patch("builtins.input", lambda _prompt="": next(interactive_inputs)):
         with redirect_stdout(output):
@@ -196,10 +204,61 @@ def main() -> None:
     assert "是否先回答问卷，生成本局初始倾向？" in interactive_output
     assert "IF 问卷 MVP 控制台" not in interactive_output
     assert "本局开局倾向" not in interactive_output
+    assert "选择本局关系设置方式：" in interactive_output
+    assert "快速预设组合会同时决定玩家倾向、NPC 倾向和主要矛盾主题，仅用于快速试玩。" in interactive_output
     assert "每日行动：" in interactive_output
     assert "对方回应：" in interactive_output
     assert "按回车继续。" in interactive_output
     assert "按回车进入下一天。" not in interactive_output
+
+    captured_fallback_kwargs: dict = {}
+
+    def fake_run_for_fallback(*_args, **kwargs):
+        captured_fallback_kwargs.update(kwargs)
+        print("fallback run")
+        return {"transcript": []}
+
+    fallback_inputs = iter(["1", "", "2", "2", ""])
+    output = StringIO()
+    with patch("builtins.input", lambda _prompt="": next(fallback_inputs)):
+        with patch("if_game.main.run_14_day_simulation", fake_run_for_fallback):
+            with redirect_stdout(output):
+                _run_interactive_menu()
+
+    fallback_output = output.getvalue()
+    assert "当前没有问卷结果，无法根据问卷生成关系配置。" in fallback_output
+    assert "请先回答问卷，或使用快速预设组合。" in fallback_output
+    assert captured_fallback_kwargs["relationship_config"]["setup_method"] == "快速预设组合"
+
+    captured_manual_kwargs: dict = {}
+
+    def fake_run_for_manual(*_args, **kwargs):
+        captured_manual_kwargs.update(kwargs)
+        for line in [
+            "开局：暧昧中。",
+            "关系配置：手动自定义。",
+            "玩家倾向：成熟沟通型。",
+            "NPC 倾向：情绪试探型。",
+            "主要矛盾：沟通修复与情绪试探。",
+        ]:
+            print(line)
+        return {"transcript": []}
+
+    manual_inputs = iter(["1", "", "2", "3", "5", "5", "5"])
+    output = StringIO()
+    with patch("builtins.input", lambda _prompt="": next(manual_inputs)):
+        with patch("if_game.main.run_14_day_simulation", fake_run_for_manual):
+            with redirect_stdout(output):
+                _run_interactive_menu()
+
+    manual_output = output.getvalue()
+    assert "选择玩家倾向：" in manual_output
+    assert "选择 NPC 倾向：" in manual_output
+    assert "选择主要矛盾主题：" in manual_output
+    assert "关系配置：手动自定义。" in manual_output
+    assert captured_manual_kwargs["relationship_config"]["player_tendency"] == "成熟沟通型"
+    assert captured_manual_kwargs["relationship_config"]["npc_tendency"] == "情绪试探型"
+    assert captured_manual_kwargs["relationship_config"]["conflict_theme"] == "沟通修复与情绪试探"
 
     menu_inputs = iter(
         ["3"]
